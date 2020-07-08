@@ -1,2 +1,6 @@
 # GameAI_PCG
-Procedural Content Generation Assignment for GameAI class
+GameAI PCG Assignment
+
+Developed by: Jeff Wilson, PhD (jeff@imtc.gatech.edu)
+
+See Documents/ for assignment details
