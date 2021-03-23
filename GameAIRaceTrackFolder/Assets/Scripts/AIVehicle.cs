@@ -232,6 +232,7 @@ namespace GameAI
 
         float startDist = 0f;
 
+        private bool _isResetting = false;
 
         //Stopwatch stopwatch;
         float startTime;
@@ -339,8 +340,16 @@ namespace GameAI
             // Handle the oops #1 (fall) 
             if (_rb.transform.position.y < FallYPos)
             {
-                UnityEngine.Debug.Log("OOPS:Fall");
-                ResetCar();
+                if (!_isResetting)
+                {
+                    _isResetting = true;
+                    UnityEngine.Debug.Log("OOPS:Fall");
+                    ResetCar();
+                }
+            }
+            else
+            {
+                _isResetting = false;
             }
 
             // Handle the oops #2 (truck flipped, possibly caught on edge)

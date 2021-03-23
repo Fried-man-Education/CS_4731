@@ -227,7 +227,8 @@ namespace GameAI
         protected PathTracker pathTracker;
 
         float startDist = 0f;
-     
+
+        private bool _isResetting = false;
 
         //Stopwatch stopwatch;
         float startTime;
@@ -334,8 +335,16 @@ namespace GameAI
             // Handle the oops #1 (fall) 
             if (_rb.transform.position.y < FallYPos)
             {
-                UnityEngine.Debug.Log("OOPS:Fall");
-                ResetCar();
+                if (!_isResetting)
+                {
+                    _isResetting = true;
+                    UnityEngine.Debug.Log("OOPS:Fall");
+                    ResetCar();
+                }
+            }
+            else
+            {
+                _isResetting = false;
             }
 
             // Handle the oops #2 (truck flipped, possibly caught on edge)
@@ -440,7 +449,7 @@ namespace GameAI
             }
 
             var elpsSec = Time.timeSinceLevelLoad - startTime;//stopwatch.Elapsed.TotalSeconds;
-            averageSpeed = (float)(3.6 * (pathTracker.totalDistanceTravelled-startDist) / elpsSec);
+            averageSpeed = (float)(3.6 * (pathTracker.totalDistanceTravelled - startDist) / elpsSec);
 
 
             var gm = GameManager.Instance;
@@ -451,7 +460,7 @@ namespace GameAI
 
 
             if (OutputToHUD)
-            {  
+            {
                 gm.ElapsedTMP.text = TimeSpan.FromSeconds((double)elpsSec).ToString(@"hh\:mm\:ss\.fff");//stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
                 gm.MetersPerSecTMP.text = Speed.ToString("0.0");
 
@@ -536,7 +545,7 @@ namespace GameAI
             // Direction
             foreach (WheelCollider wheel in turnWheel)
             {
-                wheel.steerAngle = Mathf.Lerp(wheel.steerAngle, steering, steerSpeed*100f*Time.fixedDeltaTime);
+                wheel.steerAngle = Mathf.Lerp(wheel.steerAngle, steering, steerSpeed * 100f * Time.fixedDeltaTime);
             }
 
             foreach (WheelCollider wheel in wheels)
