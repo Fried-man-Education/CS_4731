@@ -199,6 +199,11 @@ public partial class PCGTerrain : MonoBehaviour
 
     }
 
+
+    protected float prevParentXOffset = float.MinValue;
+    protected float prevParentYOffset = float.MinValue;
+    protected float prevParentZOffset = float.MinValue;
+
     // Returns true if dirty (modified since last processed)
     public bool Process(in Mat mHeights, float parentXOffset, float parentYOffset, float parentZOffset, bool ascendentUpdated, bool doValidation)
     {
@@ -270,7 +275,23 @@ public partial class PCGTerrain : MonoBehaviour
             return false;
         }
 
-        if (localDirty || ascendentUpdated)
+        // Small optimization. Only regen Perlin noise due to parent change
+        // if the changes are offsets
+        bool offsetsChanged = false;
+
+        if (prevParentXOffset != parentXOffset ||
+            prevParentYOffset != parentYOffset ||
+            prevParentZOffset != parentZOffset)
+        {
+            offsetsChanged = true;
+        }
+
+        prevParentXOffset = parentXOffset;
+        prevParentYOffset = parentYOffset;
+        prevParentZOffset = parentZOffset;
+
+
+        if (localDirty || offsetsChanged)
         {
 
             //Debug.Log($"Perlin step for: {name}");
