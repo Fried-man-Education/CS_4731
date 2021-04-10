@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+
+using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
@@ -10,3 +12,5 @@ public class PCGTerrainConfigSerializableObject : ScriptableObject
     public List<PCGTerrain.PCGTerrainConfig> Config = new List<PCGTerrain.PCGTerrainConfig>();
 
 }
+
+#endif

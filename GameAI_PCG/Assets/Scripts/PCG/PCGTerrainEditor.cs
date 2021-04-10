@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,6 +14,19 @@ public class PCGTerrainEditor : Editor
 
     PCGTerrain currTerrain = null;
 
+
+
+    void SaveHelper(PCGTerrainConfigSerializableObject so)
+    {
+        // even though it's been updated, Unity doesn't realize it! So make dirty
+        EditorUtility.SetDirty(so);
+
+        // if the assets don't get saved, the YAML of the scriptable object wont show up!
+        AssetDatabase.SaveAssets();
+
+        AssetDatabase.Refresh();
+
+    }
 
     public override void OnInspectorGUI()
     {
@@ -40,18 +55,29 @@ public class PCGTerrainEditor : Editor
         DrawDefaultInspector();
 
 
-        if(pcg != null && pcg.IsRoot && GUILayout.Button("Load from ScriptableObject"))
+        GUILayout.Space(20f);
+        GUILayout.Label("Loading/Saving");
+
+
+        if (pcg != null && pcg.IsRoot && GUILayout.Button("Load from ScriptableObject"))
         {
             pcg.RecursiveDelete(true, false);
             pcg.RecursiveLoad();
-            pcg.NotifyNeedUpdate();
+            pcg.SetDirty();
+            //pcg.NotifyNeedUpdate();
 
         }
 
         if (pcg != null && pcg.IsRoot && GUILayout.Button("Save to ScriptableObject"))
         {
-            pcg.RecursiveSerialize();
+            pcg.RecursiveSerialize(pcg.ConfigSerializableObject);
+
+            SaveHelper(pcg.ConfigSerializableObject);
         }
+
+
+        GUILayout.Space(20f);
+        GUILayout.Label("Create");
 
 
         if (GUILayout.Button("Add Child PCG Terrain Node"))
@@ -59,6 +85,7 @@ public class PCGTerrainEditor : Editor
             var go = new GameObject("PCG_NODE");
             go.transform.parent = pcg.gameObject.transform;
             var newPCG = go.AddComponent<PCGTerrain>();
+            pcg.PCGChildren.Add(newPCG);
             newPCG.ConfigSerializableObject = pcg.ConfigSerializableObject;
             var config = new PCGTerrain.PCGTerrainConfig();
             config.Name = go.name;
@@ -76,20 +103,26 @@ public class PCGTerrainEditor : Editor
 
             //Debug.Log($"Just added child and size is: {pcg.Config.PCGConfigChildren.Count}");
 
-            pcg.DoSerializationToScriptableObject();
-            newPCG.DoSerializationToScriptableObject();
+            pcg.DoSerializationToScriptableObject(pcg.ConfigSerializableObject);
+            newPCG.DoSerializationToScriptableObject(pcg.ConfigSerializableObject);
+
+            SaveHelper(pcg.ConfigSerializableObject);
 
             //Debug.Log($"Just added child and size is: {pcg.Config.PCGConfigChildren.Count}");
 
             Selection.activeGameObject = newPCG.gameObject;
         }
 
+        GUILayout.Space(20f);
+        GUILayout.Label("DANGEROUS OPERATION");
 
-        if(GUILayout.Button("Delete this Node (and children)"))
+        if (GUILayout.Button("Delete this Node (and children)"))
         {
 
             Selection.activeGameObject = null;
             pcg.RecursiveDelete(false, true);
+
+            SaveHelper(pcg.ConfigSerializableObject);
 
         }
 
@@ -100,3 +133,6 @@ public class PCGTerrainEditor : Editor
 
 
 }
+
+
+#endif

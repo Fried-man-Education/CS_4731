@@ -5,6 +5,7 @@
 //--------------------------------------------------------------------------------------------------------------------------------------
 // PORTED TO C# FOR UNITY3D BY JEFF PAXSON 2/04/2010
 // NOTE: Reduced original's precision to float for speed.
+// Jeff Wilson switched to a static impl as there is no state
 //--------------------------------------------------------------------------------------------------------------------------------------
 using System.Collections;
 using UnityEngine;
@@ -12,10 +13,6 @@ using UnityEngine;
 public class ImprovedPerlinNoise
 {
 
-    int X, Y, Z = 0;
-    float u, v, w = 0.0f;
-    int A, AA, AB, B, BA, BB = 0;
-    float floorx, floory, floorz = 0.0f;
     static int[] p = new int[512];
     static int[] permutation = { 151,160,137,91,90,15,
    131,13,201,95,96,53,194,233,7,225,140,36,103,30,69,142,8,99,37,240,21,10,23,
@@ -33,7 +30,7 @@ public class ImprovedPerlinNoise
    };
 
     // Constructor
-    public ImprovedPerlinNoise()
+    static ImprovedPerlinNoise()
     {
 
         for (int i = 0; i < 256; i++)
@@ -42,8 +39,13 @@ public class ImprovedPerlinNoise
         }
     }
 
-    public float Noise(float x, float y, float z)
+    static public float Noise(float x, float y, float z)
     {
+
+        int X, Y, Z = 0;
+        float u, v, w = 0.0f;
+        int A, AA, AB, B, BA, BB = 0;
+        float floorx, floory, floorz = 0.0f;
 
         // FIND UNIT CUBE THAT CONTAINS POINT
         floorx = Mathf.Floor(x);
@@ -82,22 +84,22 @@ public class ImprovedPerlinNoise
                                       grad(p[BB + 1], x - 1, y - 1, z - 1))));
     }
 
-    private float fade(float t)
+    static private float fade(float t)
     {
         return t * t * t * (t * (t * 6 - 15) + 10);
     }
 
-    private float lerp(float t, float a, float b)
+    static private float lerp(float t, float a, float b)
     {
         return a + t * (b - a);
     }
 
-    private float grad(int hash, float x, float y, float z)
+    static private float grad(int hash, float x, float y, float z)
     {
         int h = hash & 15;                     // CONVERT LO 4 BITS OF HASH CODE
         float u = h < 8 ? x : y;                 // INTO 12 GRADIENT DIRECTIONS.
         float v = h < 4 ? y : h == 12 || h == 14 ? x : z;
-        return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
+        return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 
 }

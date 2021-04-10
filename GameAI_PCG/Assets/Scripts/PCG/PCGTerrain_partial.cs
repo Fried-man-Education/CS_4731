@@ -1,9 +1,21 @@
-﻿using System.Collections;
+﻿#if UNITY_EDITOR
+
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public partial class PCGTerrain
 {
+
+    bool descendentDirty = true;
+
+    bool localDirty = true;
+
+
+    public void SetDirty()
+    {
+        localDirty = true;
+    }
 
 
     public bool IsRoot
@@ -17,40 +29,37 @@ public partial class PCGTerrain
         }
     }
 
-    private void Awake()
-    {
 
-        terrain = GetComponent<Terrain>();
+    // Awake and Start Cannot be used in editor mode, but for live game these could be useful
 
-        DoTerrainUpdate = false;
+    //private void Awake()
+    //{
+    //    //Debug.Log("AWAKE");
 
-    }
+    //    //terrain = GetComponent<Terrain>();
 
-    private void Start()
-    {
-        if (terrain != null)
-            UpdateTerrain(terrain);
-    }
+    //    //SetupTerrain();
+
+    //    ////DoTerrainUpdate = false;
+
+    //}
+
+    //private void Start()
+    //{
+    //    //Debug.Log("START");
+
+    //    //if (terrain != null)
+    //    //{
+    //    //    Debug.Log("terrain found in start!");
+
+    //    //    SetupTerrain();
+    //    //    //UpdateTerrain(terrain);
+    //    //    RootUpdate();
+    //    //}
+    //}
 
 
-    public void ProcessChildren()
-    {
-        PCGChildren = new List<PCGTerrain>();
 
-        for (int c = 0; c < transform.childCount; ++c)
-        {
-            var o = transform.GetChild(c);
-            var pcg = o.GetComponent<PCGTerrain>();
-
-            if (pcg != null)
-            {
-
-                PCGChildren.Add(pcg);
-
-                pcg.ProcessChildren();
-            }
-        }
-    }
 
 
     public void DoDeserializationFromScriptableObject()
@@ -59,7 +68,7 @@ public partial class PCGTerrain
             // && SerializableConfigIndex >= 0 && SerializableConfigIndex < ConfigSerializableObject.Config.Count
             )
         {
-            //Debug.Log("DeSERIALIZING");
+            Debug.Log("DeSERIALIZING");
 
             System.Guid _guid = this.guid;
             var found = ConfigSerializableObject.Config.FindIndex(item => item.guid == _guid);
@@ -81,20 +90,32 @@ public partial class PCGTerrain
         }
     }
 
-    public void DoSerializationToScriptableObject()
+
+    void DoSerializationToScriptableObject( )
     {
+        DoSerializationToScriptableObject(this.ConfigSerializableObject);
+    }
+
+    public void DoSerializationToScriptableObject(PCGTerrainConfigSerializableObject so)
+    {
+        //Debug.Log("DoSerializationTOScriptableObject()BEGIN");
+
         this.name = Config.Name;
 
-        if (ConfigSerializableObject != null && ConfigSerializableObject.Config != null
+        if (so == null || so.Config == null)
+            Debug.LogError($"CANNOT SERIALIZE DUE TO NULL {so} {so.Config}");
+
+
+        if (so != null && so.Config != null
             //&& SerializableConfigIndex >= 0 && SerializableConfigIndex < ConfigSerializableObject.Config.Count 
             )
         {
-            //Debug.Log("SERIALIZING");
-            //ConfigSerializableObject.Config[SerializableConfigIndex] = Config.DeepClone();
-            //ConfigSerializableObject.Config[SerializableConfigIndex] = Config.DeepCopy();
+            // update in case it is different for some reason. Should match for adding/deleting nodes later...
+            this.ConfigSerializableObject = so;
+
 
             System.Guid _guid = this.guid;
-            var found = ConfigSerializableObject.Config.FindIndex(item => {
+            var found = so.Config.FindIndex(item => {
                 System.Guid g = item.guid;
                 //Debug.Log($"Checking guid: {g} versus {_guid}");
                 var ret = g == _guid;
@@ -106,20 +127,16 @@ public partial class PCGTerrain
             {
 
                 //Debug.LogError($"Couldn't find Config with guid: " + _guid);
-                ConfigSerializableObject.Config.Add(this.Config.DeepCopy());
+                so.Config.Add(this.Config.DeepCopy());
                 this.guid = Config.guid;
             }
             else
             {
                 //Config = ConfigSerializableObject.Config[SerializableConfigIndex].DeepCopy();
-                ConfigSerializableObject.Config[found] = Config.DeepCopy();
+                so.Config[found] = Config.DeepCopy();
             }
         }
     }
-
-
-    //bool SerializationInitialized = false;
-    bool DoTerrainUpdate = false;
 
 
     private void OnValidate()
@@ -137,56 +154,16 @@ public partial class PCGTerrain
 
         name = this.Config.Name;
 
-        DoTerrainUpdate = true;
+        localDirty = true;
 
-        //if (!SerializationInitialized)
-        //{
-        //    Debug.Log("onval:serializationInit");
-        //    SerializationInitialized = true;
-
-        //    DoDeserializationFromScriptableObject();
-        //}
-        //else
-        //{
-        //    Debug.Log("onVal:serialToSO");
-        //    DoSerializationToScriptableObject();
-        //    DoTerrainUpdate = true;
-        //}
-
-
-    }
-
-
-    // This could eventually be implemented with caching such that incremental updates could be performed
-    // But since only the root has the terrain, the whole thing needs to be rebaked
-    public void NotifyNeedUpdate()
-    {
-
-        var parent = transform.parent;
-        var pcgParent = parent != null ? parent.GetComponent<PCGTerrain>() : null;
-
-        if (parent == null || pcgParent == null)
-        {
-
-            if (terrain == null)
-            {
-                Debug.LogError("This should be the PCG root but doesn't have terrain!");
-            }
-            else
-            {
-                //propagate back down (we are at root)
-                UpdateTerrain(terrain);
-            }
-        }
-        else
-        {
-            pcgParent.NotifyNeedUpdate();
-        }
     }
 
 
     public void RecursiveLoad()
     {
+
+        //Debug.Log("Sav-aye Low-Add!");
+
         if (ConfigSerializableObject == null)
         {
             Debug.LogError("Need to assign ConfigSerializableObject!");
@@ -195,6 +172,7 @@ public partial class PCGTerrain
 
         if (IsRoot)
         {
+            //Debug.Log("ROOT");
             if (this.Config == null)
                 this.Config = new PCGTerrainConfig();
 
@@ -202,6 +180,8 @@ public partial class PCGTerrain
         }
 
         DoDeserializationFromScriptableObject();
+
+        PCGChildren = new List<PCGTerrain>();
 
         for (int i = 0; i < Config.PCGConfigChildren.Count; ++i)
         {
@@ -214,6 +194,7 @@ public partial class PCGTerrain
                 var go = new GameObject("PCG_NODE");
                 go.transform.parent = this.gameObject.transform;
                 var newPCG = go.AddComponent<PCGTerrain>();
+                PCGChildren.Add(newPCG);
                 newPCG.ConfigSerializableObject = this.ConfigSerializableObject;
                 var config = new PCGTerrainConfig();
                 newPCG.Config = config;
@@ -224,7 +205,7 @@ public partial class PCGTerrain
             }
             else
             {
-                Debug.LogError("Orphan guid ref found!");
+                Debug.LogError($"Orphan guid ref found! -> {_guid}");
             }
 
 
@@ -232,15 +213,15 @@ public partial class PCGTerrain
     }
 
 
-    public void RecursiveSerialize()
+    public void RecursiveSerialize(PCGTerrainConfigSerializableObject so)
     {
 
-        if(ConfigSerializableObject == null)
+        if(so == null)
         {
             Debug.LogError("Need to assign ConfigSerializableObject!");
         }
 
-        DoSerializationToScriptableObject();
+        DoSerializationToScriptableObject(so);
 
         for (int i = 0; i < transform.childCount; ++i)
         {
@@ -254,7 +235,7 @@ public partial class PCGTerrain
                 break;
             }
 
-            pcg.RecursiveSerialize();
+            pcg.RecursiveSerialize(so);
 
         }
 
@@ -279,6 +260,9 @@ public partial class PCGTerrain
 
         }
 
+        PCGChildren = new List<PCGTerrain>();
+
+
         if (onlyDeleteChildren)
             return;
 
@@ -293,6 +277,15 @@ public partial class PCGTerrain
 
                 //pcgParent.Config.PCGConfigChildren.Remove(this.SerializableConfigIndex);
                 pcgParent.Config.PCGConfigChildren.Remove(this.guid);
+                if(!pcgParent.PCGChildren.Remove(this))
+                {
+                    Debug.LogError("Failed to remove node from parent on delete");
+                }
+                else
+                {
+                    Debug.Log("Removed child node on delete");
+                }
+
                 if (deleteEntryInSerializableObject)
                     pcgParent.DoSerializationToScriptableObject();
             }
@@ -316,11 +309,18 @@ public partial class PCGTerrain
 #endif
 
 
+        //if (pcgParent != null)
+        //    pcgParent.NotifyNeedUpdate();
+        //else if (onlyDeleteChildren)
+        //    NotifyNeedUpdate();
+
 
         if (pcgParent != null)
-            pcgParent.NotifyNeedUpdate();
+            pcgParent.SetDirty();
         else if (onlyDeleteChildren)
-            NotifyNeedUpdate();
+            localDirty = true;
+
+
     }
 
 
@@ -328,19 +328,12 @@ public partial class PCGTerrain
     // Update is called once per frame
     void Update()
     {
-
-        if (DoTerrainUpdate)
-        {
-            DoTerrainUpdate = false;
-
-            if (terrain != null)
-                UpdateTerrain(terrain);
-            else
-                NotifyNeedUpdate();
-        }
-
+        RootUpdate();
     }
 
 
 
 }
+
+
+#endif

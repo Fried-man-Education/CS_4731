@@ -14,30 +14,72 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Config:
   - Name: Terrain
-    XOffset: 0
-    YOffset: 0
+    XOffset1000: 0
+    XOffset100: 0
+    XOffset10: 0
+    XOffset1: 0
+    YOffset1000: 0
+    YOffset100: 0
+    YOffset10: 0
+    YOffset1: 0
     ZOffset: 0
-    MaxValue: 0.3
-    PerlinScalar: 0.0013
+    MaxValue: 0
+    PerlinScalar: 0
     GenNoiseType: 0
     ProcessParentType: 0
     CombineType: 0
     ProcessParentVariables: []
-    Invert: 0
+    Complement: 0
     Mute: 0
     DoNotProcessDescendants: 0
     PCGConfigChildren: []
     GenNoiseCurve:
       serializedVersion: 2
-      m_Curve: []
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     ProcessParentCurve:
       serializedVersion: 2
-      m_Curve: []
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
     guid:
-      m_storage: 97542f08-fa29-47d4-990f-45ce89b63f28
+      m_storage: 002cef59-a56c-421f-bac0-3aa10876c3f0
