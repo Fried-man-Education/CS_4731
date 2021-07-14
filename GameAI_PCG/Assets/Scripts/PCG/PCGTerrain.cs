@@ -4,6 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+using System.Linq;
+
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.UtilsModule;
@@ -682,7 +684,7 @@ public partial class PCGTerrain : MonoBehaviour
 
 
     [System.Serializable]
-    public class PCGTerrainConfig
+    public class PCGTerrainConfig 
     {
         const float OffsetRange = 100.0f;
 
@@ -784,8 +786,66 @@ public partial class PCGTerrain : MonoBehaviour
             return c;
         }
 
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            //       
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237  
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
 
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            return this.Equals(obj as PCGTerrainConfig);
+        }
+
+        public bool Equals(PCGTerrainConfig c)
+        {
+
+            if (!c.Name.Equals(Name)) return false;
+
+            if (!c.XOffset1000.Equals(XOffset1000)) return false;
+            if (!c.XOffset100.Equals(XOffset100)) return false;
+            if (!c.XOffset10.Equals(XOffset10)) return false;
+            if (!c.XOffset1.Equals(XOffset1)) return false;
+
+            if (!c.YOffset1000.Equals(YOffset1000)) return false;
+            if (!c.YOffset100.Equals(YOffset100)) return false;
+            if (!c.YOffset10.Equals(YOffset10)) return false;
+            if (!c.YOffset1.Equals(YOffset1)) return false;
+
+            if (!c.ZOffset.Equals(ZOffset)) return false;
+            if (!c.MaxValue.Equals(MaxValue)) return false;
+            if (!c.PerlinScalar.Equals(PerlinScalar)) return false;
+            if (!c.ProcessParentVariables.SequenceEqual(ProcessParentVariables)) return false;
+            if (!c.GenNoiseType.Equals(GenNoiseType)) return false;
+            if (!c.ProcessParentType.Equals(ProcessParentType)) return false;
+            if (!c.CombineType.Equals(CombineType)) return false;
+            if (!c.Complement.Equals(Complement)) return false;
+            if (!c.Mute.Equals(Mute)) return false;
+            if (!c.DoNotProcessDescendants.Equals(DoNotProcessDescendants)) return false;
+            if (!c.GenNoiseCurve.Equals(GenNoiseCurve)) return false;
+            if (!c.ProcessParentCurve.Equals(ProcessParentCurve)) return false;
+            if (!c.PCGConfigChildren.SequenceEqual(PCGConfigChildren)) return false;
+            if (!c.guid.Equals(guid)) return false;
+
+            return true;
+        }
+
+
+        // TODO this needs to be properly implemented
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
+
+
 
 
     public enum PCGGenNoiseType
@@ -819,6 +879,7 @@ public partial class PCGTerrain : MonoBehaviour
         NormalizeFromTopToParent,
         Replace
     }
+
 
 }
 

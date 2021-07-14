@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+
 using UnityEngine;
 
 [Serializable]
@@ -47,6 +49,47 @@ public class SerializableCurve
             
             return kf;
         }
+
+        // override object.Equals
+        public override bool Equals(object obj)
+        {
+            //       
+            // See the full list of guidelines at
+            //   http://go.microsoft.com/fwlink/?LinkID=85237  
+            // and also the guidance for operator== at
+            //   http://go.microsoft.com/fwlink/?LinkId=85238
+            //
+
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+
+            // TODO: write your implementation of Equals() here
+
+            return Equals(obj as SerializableKeyframe);
+        }
+
+        public bool Equals(SerializableKeyframe kf)
+        {
+
+            if (!kf.inTangent.Equals(inTangent)) return false;
+            if (!outTangent.Equals(outTangent)) return false;
+            if (!inWeight.Equals(inWeight)) return false;
+            if (!outWeight.Equals(outWeight)) return false;
+            if (!time.Equals(time)) return false;
+            if (!value.Equals(value)) return false;
+            if (!weightedMode.Equals(weightedMode)) return false;
+
+            return true;
+        }
+
+        // TODO this needs to be properly implemented
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
     }
 
 

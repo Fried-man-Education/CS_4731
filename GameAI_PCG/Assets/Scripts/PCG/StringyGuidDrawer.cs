@@ -62,4 +62,8 @@ public struct StringyGuid
             return System.Guid.Empty;
         }
     }
+    public override string ToString()
+    {
+        return new System.Guid(this.m_storage).ToString();
+    }
 }

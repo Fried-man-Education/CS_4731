@@ -176,7 +176,16 @@ public partial class PCGTerrain
             if (this.Config == null)
                 this.Config = new PCGTerrainConfig();
 
-            this.guid = ConfigSerializableObject.Config[0].guid;
+            if (ConfigSerializableObject.Config.Count <= 0)
+            {
+                this.guid = new StringyGuid();
+
+                Debug.LogWarning("The assigned ScriptableObject does not contain any nodes. You can save to add the current node");
+
+                return;
+            }
+            else
+                this.guid = ConfigSerializableObject.Config[0].guid;
         }
 
         DoDeserializationFromScriptableObject();
@@ -331,6 +340,139 @@ public partial class PCGTerrain
         RootUpdate();
     }
 
+    public bool Validate()
+    {
+        var validatedNodes = new List<PCGTerrain>();
+        return Validate(this.ConfigSerializableObject, ref validatedNodes);
+    }
+
+    public bool Validate(PCGTerrainConfigSerializableObject configSO, ref List<PCGTerrain> validatedNodes)
+    {
+        PCGTerrainConfig foundItem;
+
+        if (ConfigSerializableObject == null)
+        {
+            Debug.LogError($"Need to assign ConfigSerializableObject to {name}!");
+            return false;
+        }
+
+        if(ConfigSerializableObject != configSO)
+        {
+            Debug.LogError($"{name} has a configSO that doesn't match expected!");
+            return false;
+        }
+
+        if (this.Config == null)
+        {
+            Debug.LogError($"Null Config on {name}");
+            return false;
+        }
+
+        if (IsRoot)
+        {
+            //Debug.Log("ROOT");
+
+            if(!this.guid.Equals(ConfigSerializableObject.Config[0].guid))
+            {
+                Debug.LogError($"Root ({name}) has GUID ({this.guid}) that does not match first element of SO ({ConfigSerializableObject.Config[0].guid})");
+                return false;
+            }
+
+            foundItem = ConfigSerializableObject.Config[0];
+        }
+        else
+        {
+            System.Guid _guid = this.guid;
+            var found = ConfigSerializableObject.Config.FindIndex(item => item.guid == _guid);
+
+            if (found == -1)
+            {
+                Debug.LogError($"Couldn't find {name} with guid:{guid} in SO");
+                return false;
+            }
+
+            foundItem = ConfigSerializableObject.Config[found];
+
+        }
+
+        if(!Config.Equals(foundItem))
+        {
+            Debug.LogError($"{name} does not match conf in SO");
+            return false;
+        }
+
+        var pcgChildSet = new HashSet<PCGTerrain>(PCGChildren);
+
+        for (int i = 0; i < transform.childCount; ++i)
+        {
+            var child = transform.GetChild(i);
+
+            var pcg = child.GetComponent<PCGTerrain>();
+
+            if (pcg == null)
+            {
+                Debug.LogError($"A child that isn't PCGTerrain was found under {name}");
+                return false;
+            }
+
+            System.Guid _guid = pcg.guid;
+            var childIndex = PCGChildren.FindIndex(item => item.guid == _guid);
+
+            if(childIndex < 0)
+            {
+                Debug.LogError($"Node {name}::{guid} has hierarchy child {pcg.name}::{pcg.guid} but doesn't appear in PCGChildren");
+                return false;
+            }
+
+            var pcgChild = PCGChildren[childIndex];
+
+            if (!pcgChildSet.Remove(pcgChild))
+            {
+                Debug.LogError($"Failed to remove childNode {pcgChild.name} may indicate a dupe in the hierarchy!");
+                return false;
+            }
+
+            pcg.Validate(configSO, ref validatedNodes);
+
+        } //for
+
+        if(pcgChildSet.Count > 0)
+        {
+            Debug.LogError($"PCGChildren were found in {name} that weren't also hierarchy children!");
+            return false;
+        }
+
+        if (validatedNodes.Contains(this))
+        {
+            Debug.LogError($"Node {name}::{guid} appears more than once in the hierarchy!");
+            return false;
+        }
+        else
+        {
+            validatedNodes.Add(this);
+        }
+
+        // TODO check for orphans in the SO
+        if (IsRoot)
+        {
+            foreach(var c in ConfigSerializableObject.Config)
+            {
+                System.Guid _guid = c.guid;
+                var found = validatedNodes.FindIndex(item => item.guid == _guid);
+
+                if(found == -1)
+                {
+                    Debug.LogError($"ConfigSerializableObject contains orphan node: {c.Name}::{c.guid}");
+                    return false;
+                }
+            }
+        }
+
+
+
+        return true;
+
+    }
 
 
 }

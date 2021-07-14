@@ -54,7 +54,6 @@ public class PCGTerrainEditor : Editor
 
         DrawDefaultInspector();
 
-
         GUILayout.Space(20f);
         GUILayout.Label("Loading/Saving");
 
@@ -116,19 +115,47 @@ public class PCGTerrainEditor : Editor
         GUILayout.Space(20f);
         GUILayout.Label("DANGEROUS OPERATION");
 
+        GUILayout.TextArea("NOTE: Deletion should NOT be used to prep for Loading a new ScriptableObject. Just use Load!");
+
         if (GUILayout.Button("Delete this Node (and children)"))
         {
 
-            Selection.activeGameObject = null;
-            pcg.RecursiveDelete(false, true);
+            DeleteConfirmationModal window = ScriptableObject.CreateInstance(typeof(DeleteConfirmationModal)) as DeleteConfirmationModal;
 
-            SaveHelper(pcg.ConfigSerializableObject);
+            window.deleteAction = ()=>
+            {
+                Selection.activeGameObject = null;
+                pcg.RecursiveDelete(false, true);
+                SaveHelper(pcg.ConfigSerializableObject);
+            };
+
+            window.ShowModalUtility();
+
 
         }
 
-        
+        GUILayout.Space(20f);
+        GUILayout.Label("Testing");
+
+        if (pcg != null && pcg.IsRoot && GUILayout.Button("Validate"))
+        {
+
+            var ret = pcg.Validate();
+
+            if (ret)
+            {
+                Debug.Log("Valid!");
+            }
+            else
+            {
+                Debug.Log("NOT Valid!");
+            }
+        }
+
+
 
     }
+
 
 
 
