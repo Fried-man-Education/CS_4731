@@ -17,7 +17,7 @@ namespace Tests
     public class RacingTest
     {
 
-        const int timeScale = 5; // how fast to run the game. Running fast doesn't necessarily
+        const int timeScale = 1; // how fast to run the game. Running fast doesn't necessarily
                                  // give accurate results.
 
         const int PlayMatchTimeOutMS = int.MaxValue; // don't mess with this; add it to new tests
@@ -42,7 +42,9 @@ namespace Tests
         public IEnumerator _TestFuzzyRace()
         {
             Time.timeScale = timeScale;
-    
+
+            Time.fixedDeltaTime = Time.fixedDeltaTime / timeScale;
+
             var sceneName = "RaceTrackFZ";
 
             SceneManager.LoadScene(sceneName);
