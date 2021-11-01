@@ -34,20 +34,28 @@ namespace GameAICourse
             // Only the AI can control. No humans allowed!
             IsPlayer = false;
 
-            // TODO: You can initialize a bunch of Fuzzy stuff here
-
-
         }
 
+        protected override void Start()
+        {
+            base.Start();
+
+            // TODO: You can initialize a bunch of Fuzzy stuff here
+
+        }
 
         override protected void Update()
         {
 
-            // TODO Do all your Fuzzy stuff here and pass the defuzzified values to 
-            // the car like so:
+            // TODO Do all your Fuzzy stuff here and then
+            // pass your fuzzy rule sets to ApplyFuzzyRules()
+            // Example:
+            // ApplyFuzzyRules<FzThrottle, FzWheel>(fzThrottleRuleSet, 
+            // fzWheelRuleSet, fzInputValueSet);
+            // 
+            // The first set maps to throttle and the second maps to steering
             // Throttle = someValue; //[-1f, 1f] -1 is full brake, 0 is neutral, 1 is full throttle
             // Steering = someValue; // [-1f, 1f] -1 if full left, 0 is neutral, 1 is full right
-
 
 
             // recommend you keep the base call at the end, after all your FuzzyVehicle code so that

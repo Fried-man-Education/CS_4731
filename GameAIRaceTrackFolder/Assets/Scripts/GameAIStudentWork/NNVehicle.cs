@@ -7,7 +7,7 @@ using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 
 using GameAI;
-
+using Unity.MLAgents.Actuators;
 
 namespace GameAICourse
 {
@@ -171,21 +171,22 @@ namespace GameAICourse
 
         }
 
-        public override void OnActionReceived(float[] vectorAction)
+
+        public override void OnActionReceived(ActionBuffers actions)
         {
             // Apply the inputs
+            var vectorAction = actions.ContinuousActions;
             Steering = vectorAction[0];
             Throttle = vectorAction[1];
-
         }
 
-        public override void Heuristic(float[] actionsOut)
+        public override void Heuristic(in ActionBuffers actionsOut)
         {
             // This is just for testing with a human if Heuristic mode
             // is enabled
-            actionsOut[0] = Input.GetAxis("Horizontal"); 
-            actionsOut[1] = Input.GetAxis("Vertical");
-
+            var continuousActionsOut = actionsOut.ContinuousActions;
+            continuousActionsOut[0] = Input.GetAxis("Horizontal");
+            continuousActionsOut[1] = Input.GetAxis("Vertical");
         }
 
         override protected void Update()

@@ -17,9 +17,17 @@ using System.Diagnostics;
 using UnityEngine;
 
 using Unity.MLAgents;
+using Unity.MLAgents.Actuators;
 
 using PathCreation.Examples;
 
+// All the Fuzz
+using Tochas.FuzzyLogic;
+using Tochas.FuzzyLogic.MembershipFunctions;
+using Tochas.FuzzyLogic.Evaluators;
+using Tochas.FuzzyLogic.Mergers;
+using Tochas.FuzzyLogic.Defuzzers;
+using Tochas.FuzzyLogic.Expressions;
 
 
 #if MULTIOSCONTROLS
@@ -149,11 +157,52 @@ namespace GameAI
 
         // When IsPlayer is false you can use this to control the steering
         float steering;
-        public float Steering { get { return steering; } set { steering = steerAngle * Mathf.Clamp(value, -1f, 1f); } }
+        public float Steering
+        {
+            get { return steering; }
+
+#if USE_MLAGENTS
+            set { steering = steerAngle * Mathf.Clamp(value, -1f, 1f); }
+#else
+            set
+            {        	
+                if(IsPlayer)    
+                    steering = Mathf.Clamp(value, -1f, 1f);
+            }
+        
+#endif
+        }
+
+        protected float InternalSteering
+        {
+            get { return steering; }
+            set { steering = Mathf.Clamp(value, -1f, 1f); }
+        }
 
         // When IsPlayer is false you can use this to control the throttle
         float throttle;
-        public float Throttle { get { return throttle; } set { throttle = Mathf.Clamp(value, -1f, 1f); } }
+        public float Throttle
+        {
+            get { return throttle; }
+
+#if USE_MLAGENTS
+            set { throttle = Mathf.Clamp(value, -1f, 1f); }
+#else		
+			set {
+                if(IsPlayer)
+                    throttle = Mathf.Clamp(value, -1f, 1f);
+            } 
+#endif
+        }
+
+        protected float InternalThrottle
+        {
+            get { return throttle; }
+            set
+            {
+                throttle = Mathf.Clamp(value, -1f, 1f);
+            }
+        }
 
         // Like your own car handbrake, if it's true the car will not move
         [SerializeField] bool handbrake;
@@ -213,10 +262,17 @@ namespace GameAI
         [Header("HUD")]
         [SerializeField] protected bool OutputToHUD;
 
+        [SerializeField] protected bool FreezeHUDAtTime;
+
+        [SerializeField] protected int FreezeHUDSeconds = 5 * 60;
+
         [Header("Death and Dismemberment")]
         [SerializeField] float FallYPos = -5f;
 
         [SerializeField] float SpawnYPos = 1.5f;
+
+        [Header("DEBUG")]
+
 
         // Private variables set at the start
         Rigidbody _rb;
@@ -233,11 +289,21 @@ namespace GameAI
         //Stopwatch stopwatch;
         float startTime;
 
-
         [Header("DEBUG")]
         public float DB_Throttle;
         public float DB_Steering;
         //public float DB_internal_steering;
+
+        public void ApplyFuzzyRules<T, S>(
+            FuzzyRuleSet<T> throttleFRS,
+            FuzzyRuleSet<S> steerFRS,
+            FuzzyValueSet fuzzyValueSet
+            )
+            where T : struct, IConvertible where S : struct, IConvertible
+        {
+            InternalThrottle = throttleFRS.Evaluate(fuzzyValueSet);
+            InternalSteering = steerFRS.Evaluate(fuzzyValueSet);
+        }
 
 
         virtual protected void Awake()
@@ -250,9 +316,12 @@ namespace GameAI
         }
 
 
+        bool wasPlayer = false;
+
         // Init rigidbody, center of mass, wheels and more
         virtual protected void Start()
         {
+            wasPlayer = IsPlayer;
 
             //stopwatch.Start();
             startTime = Time.timeSinceLevelLoad;
@@ -295,6 +364,11 @@ namespace GameAI
             DB_Throttle = Throttle;
             DB_Steering = Steering;
 
+            if (IsPlayer && IsPlayer != wasPlayer)
+            {
+                throw new UnityException("Cheat detected!");
+            }
+
 #if USE_FANCY_EFFECTS
             foreach (ParticleSystem gasParticle in gasParticles)
             {
@@ -317,6 +391,12 @@ namespace GameAI
                 if (throttleInput != "" && throttleInput != null)
                 {
                     throttle = GetInput(throttleInput) - GetInput(brakeInput);
+
+#if !USE_MLAGENTS
+                    throttle = Mathf.Clamp(throttle, -1f, 1f);
+
+                    //UnityEngine.Debug.Log($"throttle: {GetInput(throttleInput)} brake: {GetInput(brakeInput)}");
+#endif
                 }
                 // Boost
                 boosting = (GetInput(boostInput) > 0.5f);
@@ -328,7 +408,9 @@ namespace GameAI
                 jumping = GetInput(jumpInput) != 0;
             }
 
-            //steering *= steerAngle;
+#if !USE_MLAGENTS
+            steering *= steerAngle;
+#endif
 
             //DB_internal_steering = steering;
 
@@ -378,8 +460,8 @@ namespace GameAI
             prevDist = pathTracker.totalDistanceTravelled;
 
             //Debug.Log($"distTrav: {distTravelled}");
-            distFakeSlidingAvg = distTravelled / fakeTimeLen +
-                distFakeSlidingAvg * (fakeTimeLen - Time.deltaTime) / fakeTimeLen;
+            //distFakeSlidingAvg = distTravelled / fakeTimeLen +
+            //    distFakeSlidingAvg * (fakeTimeLen - Time.deltaTime) / fakeTimeLen;
 
             //Debug.Log($"distfakeslidingavg: {distFakeSlidingAvg}");
 
@@ -458,22 +540,31 @@ namespace GameAI
             gm.KpHLTA = averageSpeed;
             gm.MetersTravelled = pathTracker.totalDistanceTravelled;
 
-
             if (OutputToHUD)
             {
-                gm.ElapsedTMP.text = TimeSpan.FromSeconds((double)elpsSec).ToString(@"hh\:mm\:ss\.fff");//stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
-                gm.MetersPerSecTMP.text = Speed.ToString("0.0");
 
-                //var elpsSec = stopwatch.Elapsed.TotalSeconds;
-                //var avgSpd = 3.6 * pathTracker.totalDistanceTravelled / elpsSec;
-                gm.MetersPerSecLTATMP.text = averageSpeed.ToString("0.0");
-                gm.TotalMetersTMP.text = pathTracker.totalDistanceTravelled.ToString("0.0");
-                gm.WipeoutsTMP.text = numResets.ToString();
+                if (FreezeHUDAtTime && (elpsSec > (float)FreezeHUDSeconds))
+                {
+                    gm.ElapsedTMP.text = TimeSpan.FromSeconds((double)FreezeHUDSeconds).ToString(@"hh\:mm\:ss\.fff");//stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+                }
+                else
+                {
+                    gm.ElapsedTMP.text = TimeSpan.FromSeconds((double)elpsSec).ToString(@"hh\:mm\:ss\.fff");//stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+                    gm.MetersPerSecTMP.text = Speed.ToString("0.0");
 
+                    //var elpsSec = stopwatch.Elapsed.TotalSeconds;
+                    //var avgSpd = 3.6 * pathTracker.totalDistanceTravelled / elpsSec;
+                    gm.MetersPerSecLTATMP.text = averageSpeed.ToString("0.0");
+                    gm.TotalMetersTMP.text = pathTracker.totalDistanceTravelled.ToString("0.0");
+                    gm.WipeoutsTMP.text = numResets.ToString();
+                }
 
             }
 
         }
+
+
+
 
         protected int numResets = 0;
 
@@ -488,7 +579,7 @@ namespace GameAI
 
         protected float prevDist = 0;
 
-        public float distFakeSlidingAvg = 10f;
+        // public float distFakeSlidingAvg = 10f;
 
         protected float fakeTimeLen = 5f;
 
@@ -505,7 +596,7 @@ namespace GameAI
             stopped = false;
             isTurnedBackwards = false;
 
-            distFakeSlidingAvg = 10f;
+            // distFakeSlidingAvg = 10f;
 
             // make room for the car chassis to fit on road
             float minAllowedDist = 3f;
@@ -676,10 +767,18 @@ namespace GameAI
 
 #if USE_MLAGENTS
         // impl to make warning shut up
-        public override void Heuristic(float[] actionsOut)
+        public override void OnActionReceived(ActionBuffers actions)
         {
             // This is just for testing with a human
         }
+
+
+        // impl to make warning shut up
+        public override void Heuristic(in ActionBuffers actionsOut)
+        {
+            // This is just for testing with a human
+        }
+
 #endif
 
     }
