@@ -39,17 +39,25 @@ namespace OpenCVForUnity
 
             //Disable Extra folder
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/exclude_contrib/Android/libs/armeabi-v7a"), null, null);
-            SetPlugins(GetPluginFilePaths(extraFolderPath + "/exclude_contrib/Android/libs/x86"), null, null);
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/exclude_contrib/Android/libs/arm64-v8a"), null, null);
+            SetPlugins(GetPluginFilePaths(extraFolderPath + "/exclude_contrib/Android/libs/x86"), null, null);
+            SetPlugins(GetPluginFilePaths(extraFolderPath + "/exclude_contrib/Android/libs/x86_64"), null, null);
             SetPlugins(new string[] { extraFolderPath + "/exclude_contrib/iOS/opencv2.framework" }, null, null);
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/exclude_contrib/iOS"), null, null);
+            SetPlugins(new string[] { extraFolderPath + "/exclude_contrib/WebGL/2019.1/opencvforunity.bc" }, null, null);
+            SetPlugins(new string[] { extraFolderPath + "/exclude_contrib/WebGL/2021.2/opencvforunity.bc" }, null, null);
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/libs/armeabi-v7a"), null, null);
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/libs/arm64-v8a"), null, null);
+            SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/libs/x86"), null, null);
+            SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/libs/x86_64"), null, null);
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/exclude_contrib/libs/armeabi-v7a"), null, null);
             SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/exclude_contrib/libs/arm64-v8a"), null, null);
+            SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/exclude_contrib/libs/x86"), null, null);
+            SetPlugins(GetPluginFilePaths(extraFolderPath + "/dll_version/Android/exclude_contrib/libs/x86_64"), null, null);
             SetPlugins(new string[] { extraFolderPath + "/dll_version/Windows/x86/opencvforunity.dll" }, null, null);
             SetPlugins(new string[] { extraFolderPath + "/dll_version/Windows/x86_64/opencvforunity.dll" }, null, null);
             SetPlugins(new string[] { extraFolderPath + "/webgl_multithread/2019.1/opencvforunity.bc" }, null, null);
+            SetPlugins(new string[] { extraFolderPath + "/webgl_multithread/2021.2/opencvforunity.bc" }, null, null);
 
 
             //Android
@@ -72,6 +80,30 @@ namespace OpenCVForUnity
                 });
 #else
             SetPlugins(GetPluginFilePaths(pluginsFolderPath + "/Android/libs/arm64-v8a"), null, null);
+#endif
+#if UNITY_2021_2_OR_NEWER
+            SetPlugins(GetPluginFilePaths(pluginsFolderPath + "/Android/libs/x86"), null,
+                new Dictionary<BuildTarget, Dictionary<string, string>>() { {BuildTarget.Android,new Dictionary<string, string> () { {
+                                "CPU",
+                                "x86"
+                            }
+                        }
+                    }
+                });
+#else
+            SetPlugins(GetPluginFilePaths(pluginsFolderPath + "/Android/libs/x86"), null, null);
+#endif
+#if UNITY_2021_2_OR_NEWER
+            SetPlugins(GetPluginFilePaths(pluginsFolderPath + "/Android/libs/x86_64"), null,
+                new Dictionary<BuildTarget, Dictionary<string, string>>() { {BuildTarget.Android,new Dictionary<string, string> () { {
+                                "CPU",
+                                "x86_64"
+                            }
+                        }
+                    }
+                });
+#else
+            SetPlugins(GetPluginFilePaths(pluginsFolderPath + "/Android/libs/x86_64"), null, null);
 #endif
 
             //iOS
@@ -259,22 +291,25 @@ namespace OpenCVForUnity
                 });
 #endif
 
+
             //WebGL
-            SetPlugins(new string[] { pluginsFolderPath + "/WebGL/2018.2/opencvforunity.bc" }, null, null);
             SetPlugins(new string[] { pluginsFolderPath + "/WebGL/2019.1/opencvforunity.bc" }, null, null);
-#if UNITY_2019_1_OR_NEWER
-            SetPlugins(new string[] { pluginsFolderPath + "/WebGL/2019.1/opencvforunity.bc" }, null, new Dictionary<BuildTarget, Dictionary<string, string>>() { {
+            SetPlugins(new string[] { pluginsFolderPath + "/WebGL/2021.2/opencvforunity.bc" }, null, null);
+#if UNITY_2021_2_OR_NEWER
+            SetPlugins(new string[] { pluginsFolderPath + "/WebGL/2021.2/opencvforunity.bc" }, null, new Dictionary<BuildTarget, Dictionary<string, string>>() { {
                     BuildTarget.WebGL,
                     null
                 }
             });
-#elif UNITY_2018_2_OR_NEWER
-            SetPlugins (new string[] { pluginsFolderPath + "/WebGL/2018.2/opencvforunity.bc" }, null, new Dictionary<BuildTarget, Dictionary<string, string>> () { {
+#elif UNITY_2019_1_OR_NEWER
+            SetPlugins (new string[] { pluginsFolderPath + "/WebGL/2019.1/opencvforunity.bc" }, null, new Dictionary<BuildTarget, Dictionary<string, string>> () { {
                     BuildTarget.WebGL,
                     null
                 }
             });
 #endif
+            if (PlayerSettings.WebGL.exceptionSupport == WebGLExceptionSupport.None)
+                PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
 
 
             //Lumin
@@ -534,7 +569,7 @@ namespace OpenCVForUnity
         public static void ImportExtraPackage()
         {
 
-            AssetDatabase.ImportPackage("Assets/OpenCVForUnity/Extra.unitypackage", true);
+            Debug.LogError("The trial package does not include the Extra package.");
 
         }
 
@@ -553,7 +588,7 @@ namespace OpenCVForUnity
         [MenuItem("Tools/OpenCV for Unity/Open OpenCV C++ API Reference", false, 36)]
         public static void OpenOpenCVAPIReference()
         {
-            Application.OpenURL("http://docs.opencv.org/4.5.0/index.html");
+            Application.OpenURL("http://docs.opencv.org/4.5.4/index.html");
         }
 
     }

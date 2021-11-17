@@ -14,7 +14,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
 {
     /// <summary>
     /// WebcamTexture to mat helper.
-    /// v 1.1.2
+    /// v 1.1.4
     /// </summary>
     public class WebCamTextureToMatHelper : MonoBehaviour
     {
@@ -29,10 +29,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _requestedDeviceName; }
             set
             {
-                _requestedDeviceName = value;
-                if (hasInitDone)
+                if (_requestedDeviceName != value)
                 {
-                    Initialize();
+                    _requestedDeviceName = value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
@@ -48,10 +49,12 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _requestedWidth; }
             set
             {
-                _requestedWidth = (int)Mathf.Clamp(value, 0f, float.MaxValue);
-                if (hasInitDone)
+                int _value = (int)Mathf.Clamp(value, 0f, float.MaxValue);
+                if (_requestedWidth != _value)
                 {
-                    Initialize();
+                    _requestedWidth = _value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
@@ -67,10 +70,12 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _requestedHeight; }
             set
             {
-                _requestedHeight = (int)Mathf.Clamp(value, 0f, float.MaxValue);
-                if (hasInitDone)
+                int _value = (int)Mathf.Clamp(value, 0f, float.MaxValue);
+                if (_requestedHeight != _value)
                 {
-                    Initialize();
+                    _requestedHeight = _value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
@@ -86,10 +91,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _requestedIsFrontFacing; }
             set
             {
-                _requestedIsFrontFacing = value;
-                if (hasInitDone)
+                if (_requestedIsFrontFacing != value)
                 {
-                    Initialize(_requestedIsFrontFacing, requestedFPS, rotate90Degree);
+                    _requestedIsFrontFacing = value;
+                    if (hasInitDone)
+                        Initialize(_requestedIsFrontFacing, requestedFPS, rotate90Degree);
                 }
             }
         }
@@ -105,14 +111,18 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _requestedFPS; }
             set
             {
-                _requestedFPS = Mathf.Clamp(value, -1f, float.MaxValue);
-                if (hasInitDone)
+                float _value = Mathf.Clamp(value, -1f, float.MaxValue);
+                if (_requestedFPS != _value)
                 {
-                    bool isPlaying = IsPlaying();
-                    Stop();
-                    webCamTexture.requestedFPS = _requestedFPS;
-                    if (isPlaying)
-                        Play();
+                    _requestedFPS = _value;
+                    if (hasInitDone)
+                    {
+                        bool isPlaying = IsPlaying();
+                        Stop();
+                        webCamTexture.requestedFPS = _requestedFPS;
+                        if (isPlaying)
+                            Play();
+                    }
                 }
             }
         }
@@ -128,10 +138,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _rotate90Degree; }
             set
             {
-                _rotate90Degree = value;
-                if (hasInitDone)
+                if (_rotate90Degree != value)
                 {
-                    Initialize();
+                    _rotate90Degree = value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
@@ -171,10 +182,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _outputColorFormat; }
             set
             {
-                _outputColorFormat = value;
-                if (hasInitDone)
+                if (_outputColorFormat != value)
                 {
-                    Initialize();
+                    _outputColorFormat = value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
@@ -310,14 +322,28 @@ namespace OpenCVForUnity.UnityUtils.Helper
             _timeoutFrameCount = (int)Mathf.Clamp(_timeoutFrameCount, 0f, float.MaxValue);
         }
 
+#if !UNITY_EDITOR && !UNITY_ANDROID
+        protected bool isScreenSizeChangeWaiting = false;
+#endif
+
         // Update is called once per frame
         protected virtual void Update()
         {
             if (hasInitDone)
             {
                 // Catch the orientation change of the screen and correct the mat image to the correct direction.
-                if (screenOrientation != Screen.orientation && (screenWidth != Screen.width || screenHeight != Screen.height))
+                if (screenOrientation != Screen.orientation)
                 {
+
+#if !UNITY_EDITOR && !UNITY_ANDROID
+                    // Wait one frame until the Screen.width/Screen.height property changes.
+                    if (!isScreenSizeChangeWaiting)
+                    {
+                        isScreenSizeChangeWaiting = true;
+                        return;
+                    }
+                    isScreenSizeChangeWaiting = false;
+#endif
 
                     if (onDisposed != null)
                         onDisposed.Invoke();
@@ -346,7 +372,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
                     }
                     else
                     {
-                        frameMat = new Mat(baseMat.rows(), baseMat.cols(), CvType.CV_8UC(Channels(outputColorFormat)));
+                        frameMat = new Mat(baseMat.rows(), baseMat.cols(), CvType.CV_8UC(Channels(outputColorFormat)), new Scalar(0, 0, 0, 255));
                     }
 
                     screenOrientation = Screen.orientation;
@@ -373,11 +399,6 @@ namespace OpenCVForUnity.UnityUtils.Helper
 
                     if (onInitialized != null)
                         onInitialized.Invoke();
-                }
-                else
-                {
-                    screenWidth = Screen.width;
-                    screenHeight = Screen.height;
                 }
             }
         }
@@ -685,7 +706,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
                     }
                     else
                     {
-                        frameMat = new Mat(baseMat.rows(), baseMat.cols(), CvType.CV_8UC(Channels(outputColorFormat)));
+                        frameMat = new Mat(baseMat.rows(), baseMat.cols(), CvType.CV_8UC(Channels(outputColorFormat)), new Scalar(0, 0, 0, 255));
                     }
 
                     screenOrientation = Screen.orientation;
@@ -708,7 +729,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
                         isRotatedFrame = true;
 #endif
                     if (isRotatedFrame)
-                        rotatedFrameMat = new Mat(frameMat.cols(), frameMat.rows(), CvType.CV_8UC(Channels(outputColorFormat)));
+                        rotatedFrameMat = new Mat(frameMat.cols(), frameMat.rows(), CvType.CV_8UC(Channels(outputColorFormat)), new Scalar(0, 0, 0, 255));
 
                     isInitWaiting = false;
                     hasInitDone = true;
@@ -1042,30 +1063,18 @@ namespace OpenCVForUnity.UnityUtils.Helper
 
             if (webCamDevice.isFrontFacing)
             {
-                if (webCamTexture.videoRotationAngle == 0)
+                if (webCamTexture.videoRotationAngle == 0 || webCamTexture.videoRotationAngle == 90)
                 {
                     flipCode = -1;
                 }
-                else if (webCamTexture.videoRotationAngle == 90)
-                {
-                    flipCode = -1;
-                }
-                if (webCamTexture.videoRotationAngle == 180)
-                {
-                    flipCode = int.MinValue;
-                }
-                else if (webCamTexture.videoRotationAngle == 270)
+                else if (webCamTexture.videoRotationAngle == 180 || webCamTexture.videoRotationAngle == 270)
                 {
                     flipCode = int.MinValue;
                 }
             }
             else
             {
-                if (webCamTexture.videoRotationAngle == 180)
-                {
-                    flipCode = 1;
-                }
-                else if (webCamTexture.videoRotationAngle == 270)
+                if (webCamTexture.videoRotationAngle == 180 || webCamTexture.videoRotationAngle == 270)
                 {
                     flipCode = 1;
                 }

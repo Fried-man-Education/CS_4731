@@ -1,4 +1,4 @@
-#if (UNITY_5 || UNITY_5_3_OR_NEWER) && UNITY_IOS
+﻿#if (UNITY_5 || UNITY_5_3_OR_NEWER) && UNITY_IOS
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
@@ -13,6 +13,7 @@ using System;
 using System.Linq;
 using System.Collections;
 using System.IO;
+using System.Collections.Generic;
 
 namespace OpenCVForUnity
 {
@@ -32,12 +33,21 @@ namespace OpenCVForUnity
                 if (string.IsNullOrEmpty(opencvLibraryPath))
                     throw new System.Exception("Can't find libopencvforunity.a");
 
-                if (PlayerSettings.iOS.sdkVersion == iOSSdkVersion.DeviceSDK) {
 
+
+                //Remove the architecture for the simulator.
+                if (PlayerSettings.iOS.sdkVersion == iOSSdkVersion.DeviceSDK) {
+#if UNITY_EDITOR_OSX
                     RemoveSimulatorArchitectures(Path.GetDirectoryName(opencvFrameworkPath), "opencv2.framework/opencv2");
                     RemoveSimulatorArchitectures(Path.GetDirectoryName(opencvLibraryPath), "libopencvforunity.a");
+#else
+                    UnityEngine.Debug.LogError("The RemoveSimulatorArchitectures() method fails when outputting an Xcode project in UnityEditor on non-macOS.\nBefore outputting the Xcode project, please execute the following command on macOS.\n\n//remove i386 architectures.\nlipo - remove i386 opencv2.framework / opencv2 - o opencv2.framework / opencv2\n//remove x86_64 architectures.\nlipo - remove x86_64 opencv2.framework / opencv2 - o opencv2.framework / opencv2\n//check the architectures.\nlipo - info opencv2.framework / opencv2\n\n//remove i386 architectures.\nlipo - remove i386 libopencvforunity.a - o libopencvforunity.a\n//remove x86_64 architectures.\nlipo - remove x86_64 libopencvforunity.a - o libopencvforunity.a\n//check the architectures.\nlipo - info libopencvforunity.a\n");
+#endif
                 }
 
+
+
+                //Set opencv2.framework to Embedded Binaries.
 #if UNITY_5_0 || UNITY_5_1 || UNITY5_2
                 string projPath = path + "/Unity-iPhone.xcodeproj/project.pbxproj";
 #else
@@ -56,6 +66,37 @@ namespace OpenCVForUnity
 #endif
 
 #if UNITY_2018_1_OR_NEWER
+                string[] guids = UnityEditor.AssetDatabase.FindAssets("OpenCVForUnityIOSBuildPostprocessor");
+                if (guids.Length == 0)
+                {
+                    UnityEngine.Debug.LogWarning("SetPluginImportSettings Faild : OpenCVForUnityIOSBuildPostprocessor.cs is missing.");
+                    return;
+                }
+                string opencvForUnityFolderPath = AssetDatabase.GUIDToAssetPath(guids[0]).Substring(0, AssetDatabase.GUIDToAssetPath(guids[0]).LastIndexOf("Editor/OpenCVForUnityIOSBuildPostprocessor.cs"));
+
+                string pluginsFolderPath = opencvForUnityFolderPath + "Plugins";
+                //UnityEngine.Debug.Log ("pluginsFolderPath " + pluginsFolderPath);
+
+                PluginImporter pluginImporter = PluginImporter.GetAtPath(pluginsFolderPath + "/iOS/opencv2.framework") as PluginImporter;
+
+                if (pluginImporter != null)
+                {
+                    if(pluginImporter.GetPlatformData(BuildTarget.iOS, "AddToEmbeddedBinaries") == "false")
+                    {
+                        //UnityEngine.Debug.Log("AddToEmbeddedBinaries false");
+
+                        OpenCVForUnityMenuItem.SetPlugins(new string[] { pluginsFolderPath + "/iOS/opencv2.framework" }, null,
+    new Dictionary<BuildTarget, Dictionary<string, string>>() { {
+                        BuildTarget.iOS,
+                        new Dictionary<string, string> () { {
+                                "AddToEmbeddedBinaries",
+                                "true"
+                            }
+                        }
+                    }
+    });
+                    }
+                }
 
 #elif UNITY_2017_2_OR_NEWER
                 string fileGuid = proj.FindFileGuidByProjectPath(opencvFrameworkPath.Substring(path.Length+1));
@@ -75,14 +116,17 @@ namespace OpenCVForUnity
                 proj.SetBuildProperty( target, "ENABLE_BITCODE", "NO" );
 #endif
 
-                File.WriteAllText (projPath, proj.WriteToString ());
+                    File.WriteAllText (projPath, proj.WriteToString ());
 
+
+
+                //Check if the Target minimum iOS Version is set to 9.0 or higher.
 #if UNITY_5_5_OR_NEWER
-                if ((int)Convert.ToDecimal (PlayerSettings.iOS.targetOSVersionString) < 8) {
+                if ((int)Convert.ToDecimal (PlayerSettings.iOS.targetOSVersionString) < 9) {
 #else
-                if ((int)PlayerSettings.iOS.targetOSVersion < (int)iOSTargetOSVersion.iOS_8_0) {
+                if ((int)PlayerSettings.iOS.targetOSVersion < (int)iOSTargetOSVersion.iOS_9_0) {
 #endif
-                    UnityEngine.Debug.LogError ("Please set Target minimum iOS Version to 8.0 or higher.");
+                    UnityEngine.Debug.LogError ("Please set Target minimum iOS Version to 9.0 or higher.");
                 }
 
             }
@@ -120,9 +164,9 @@ namespace OpenCVForUnity
             process.Close ();
 
             if (string.IsNullOrEmpty (error)) {
-                UnityEngine.Debug.Log ("success : " + output);
+                UnityEngine.Debug.Log ("Success RemoveSimulatorArchitectures() : " + output);
             } else {
-                UnityEngine.Debug.LogWarning ("error : " + error);
+                UnityEngine.Debug.LogError ("Error RemoveSimulatorArchitectures() : " + error);
             }
         }
     }

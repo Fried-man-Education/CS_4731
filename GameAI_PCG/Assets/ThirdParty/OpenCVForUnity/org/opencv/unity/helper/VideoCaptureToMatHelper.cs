@@ -11,7 +11,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
 {
     /// <summary>
     /// VideoCapture to mat helper.
-    /// v 1.0.1
+    /// v 1.0.2
     /// </summary>
     public class VideoCaptureToMatHelper : MonoBehaviour
     {
@@ -26,10 +26,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _requestedVideoFilePath; }
             set
             {
-                _requestedVideoFilePath = value;
-                if (hasInitDone)
+                if (_requestedVideoFilePath != value)
                 {
-                    Initialize();
+                    _requestedVideoFilePath = value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
@@ -45,10 +46,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
             get { return _outputColorFormat; }
             set
             {
-                _outputColorFormat = value;
-                if (hasInitDone)
+                if (_outputColorFormat != value)
                 {
-                    Initialize();
+                    _outputColorFormat = value;
+                    if (hasInitDone)
+                        Initialize();
                 }
             }
         }
