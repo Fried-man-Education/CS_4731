@@ -30,6 +30,10 @@ namespace PathCreation.Utility
                 int divisions = Mathf.CeilToInt(estimatedSegmentLength * accuracy);
                 float increment = 1f / divisions;
 
+                // This forces all Bezier segments to appear regardless of angle error
+                // first segment start is already added
+                bool newSegment = segmentIndex > 0;
+
                 for (float t = increment; t <= 1; t += increment)
                 {
                     bool isLastPointOnPath = (t + increment > 1 && segmentIndex == bezierPath.NumSegments - 1);
@@ -47,8 +51,10 @@ namespace PathCreation.Utility
                     float angleError = Mathf.Max(localAngle, angleFromPrevVertex);
 
 
-                    if ((angleError > maxAngleError && dstSinceLastVertex >= minVertexDst) || isLastPointOnPath)
+                    if ( (newSegment && dstSinceLastVertex >= minVertexDst)
+                        || (angleError > maxAngleError && dstSinceLastVertex >= minVertexDst) || isLastPointOnPath)
                     {
+                        newSegment = false;
 
                         currentPathLength += (lastAddedPoint - pointOnPath).magnitude;
                         splitData.cumulativeLength.Add(currentPathLength);

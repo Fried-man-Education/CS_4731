@@ -26,7 +26,7 @@ namespace Tests
 
         public RacingTest()
         {
-           
+
         }
 
 
@@ -45,6 +45,8 @@ namespace Tests
 
             Time.fixedDeltaTime = Time.fixedDeltaTime / timeScale;
 
+            Application.targetFrameRate = 60 * timeScale;
+
             var sceneName = "RaceTrackFZ";
 
             SceneManager.LoadScene(sceneName);
@@ -58,12 +60,67 @@ namespace Tests
 
             var gm = GameManager.Instance;
 
-            Assert.That(gm.KpHLTA, Is.GreaterThanOrEqualTo(40f));
+            Debug.Log($"Km/H LTA: {gm.KpHLTA} Num wipeouts: {gm.Wipeouts} meters: {gm.MetersTravelled}");
 
-            Assert.That(gm.Wipeouts, Is.LessThanOrEqualTo(1));
-           
+
+            var targetSpeed = 45f;
+            var extraCreditSpeed = 6f;
+            var minAllowedSpeed = 30f;
+
+            var speedScoreWeight = 0.6f;
+            var wipeoutScoreWeight = 0.4f;
+            var extraCreditWeight = 0.05f;
+
+            var speedPenalty = Mathf.Lerp(speedScoreWeight, 0f,
+
+                Power(
+                    Mathf.InverseLerp(minAllowedSpeed, targetSpeed, gm.KpHLTA)
+                    , 0.5f)
+
+                    );
+
+
+            var maxAllowedWipeouts = 1;
+            var maxPartialPenaltyWipeouts = 10;
+
+
+            var wipeoutPenalty = Mathf.Lerp(wipeoutScoreWeight, 0f,
+                    1f - Mathf.InverseLerp(maxAllowedWipeouts, maxPartialPenaltyWipeouts, gm.Wipeouts)
+                );
+
+
+            float extraCredit = 0f;
+
+            if (gm.Wipeouts <= 0)
+            {
+                extraCredit = Mathf.Lerp(extraCreditWeight, 0f,
+
+                     Power(
+                         Mathf.InverseLerp(targetSpeed, extraCreditSpeed, gm.KpHLTA)
+                         , 0.5f)
+
+                         );
+
+                Debug.Log($"Extra credit earned: {extraCredit}");
+            }
+            else
+            {
+                Debug.Log($"Extra credit only earned if no wipeouts!");
+            }
+
+            var totalScore = (speedScoreWeight - speedPenalty) +
+                (wipeoutScoreWeight - wipeoutPenalty) +
+                extraCredit;
+
+            Debug.Log($"Estimated Total Score: {totalScore * 100}%");
 
         }
+
+        float Power(float t, float strength)
+        {
+            return Mathf.Pow(t, strength);
+        }
+
 
     }
 

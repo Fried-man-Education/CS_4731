@@ -1,3 +1,5 @@
+//#define PATH_DEBUG
+
 using System.Collections.Generic;
 using System.Linq;
 using PathCreation.Utility;
@@ -24,7 +26,9 @@ namespace PathCreation.Examples {
         public float DB_UpdatedOffset = 0;
         public float DB_texOffsetErr = 0;
 
+#if PATH_DEBUG
         public float[] DB_segLens;
+#endif
 
         [SerializeField, HideInInspector]
         GameObject meshHolder;
@@ -113,6 +117,7 @@ namespace PathCreation.Examples {
 
             //var arrItems = items.ToArray();
 
+            //DB_segLens = arrItems;
 
             //for(int i = 1; i < DB_segLens.Length - 1; ++i)
             //{

@@ -22,7 +22,8 @@ namespace PathCreation.Examples
 
         public Vector3 eulerOffsetRot = Vector3.zero;
 
-        void Start() {
+        void Start()
+        {
             if (pathCreator != null)
             {
                 // Subscribed to the pathUpdated event so that we're notified if the path changes during the game
@@ -51,19 +52,31 @@ namespace PathCreation.Examples
             SetDistance(dist);
         }
 
+        public void ResetTotalDistance()
+        {
+            this.totalDistanceTravelled = 0f;
+            //this.lastDistanceTravelled = 0f;
+            //this.distanceTravelled = 0f;
+        }
 
         void SetDistance(float dist)
         {
+            //Debug.Log($"SetDistance({dist})");
             distanceTravelled = dist;
 
             // this could be subtracting and that is ok
-            totalDistanceTravelled += (distanceTravelled - lastDistanceTravelled);      
+            totalDistanceTravelled += (distanceTravelled - lastDistanceTravelled);
 
             lastDistanceTravelled = distanceTravelled;
 
-            closestPointOnPath = pathCreator.path.GetPointAtDistance(distanceTravelled);
+            var tup = pathCreator.path.GetPointAndDirAtDistance(distanceTravelled);
 
-            closestPointDirectionOnPath = pathCreator.path.GetDirectionAtDistance(distanceTravelled);
+            //closestPointOnPath = pathCreator.path.GetPointAtDistance(distanceTravelled);
+            //closestPointDirectionOnPath = pathCreator.path.GetDirectionAtDistance(distanceTravelled);
+
+            closestPointOnPath = tup.Item1;
+            closestPointDirectionOnPath = tup.Item2;
+
 
             currentBezierSegmentIndex = pathCreator.path.GetBezierSegmentIndexAtDistance(distanceTravelled);
 
@@ -80,9 +93,15 @@ namespace PathCreation.Examples
 
             lastDistanceTravelled = distanceTravelled;
 
-            closestPointOnPath = pathCreator.path.GetPointAtDistance(distanceTravelled);
+            //closestPointOnPath = pathCreator.path.GetPointAtDistance(distanceTravelled);
 
-            closestPointDirectionOnPath = pathCreator.path.GetDirectionAtDistance(distanceTravelled);
+            //closestPointDirectionOnPath = pathCreator.path.GetDirectionAtDistance(distanceTravelled);
+
+            var tup = pathCreator.path.GetPointAndDirAtDistance(distanceTravelled);
+
+            closestPointOnPath = tup.Item1;
+            closestPointDirectionOnPath = tup.Item2;
+
 
             currentBezierSegmentIndex = pathCreator.path.GetBezierSegmentIndexAtDistance(distanceTravelled);
 
@@ -107,7 +126,7 @@ namespace PathCreation.Examples
                 SetDistance(pathCreator.path.GetClosestDistanceAlongPath(transform.position));
 
                 previousPosition = transform.position;
-  
+
             }
 
         }
@@ -127,8 +146,8 @@ namespace PathCreation.Examples
 
             //Debug.Log($"bindex is: {bindex} b2ind: {b2index} cummLenVertSiz: {pathCreator.path.cumulativeLengthAtEachVertex.Length}");
 
-//            oldestBezierSegmentLen =
-//pathCreator.path.cumulativeLengthAtEachVertex[bindex - 1];
+            //            oldestBezierSegmentLen =
+            //pathCreator.path.cumulativeLengthAtEachVertex[bindex - 1];
 
             AdjustDistance(pathCreator.path.GetClosestDistanceAlongPath(previousPosition));
 

@@ -9,6 +9,7 @@ namespace Tochas.FuzzyLogic
     public class FuzzyRuleSet<T> where T : struct, IConvertible
     {
         private List<FuzzyRule<T>> rules;
+        public List<FuzzyRule<T>> Rules { get { return rules; } }
         public FuzzySet<T> OutputVarSet { get; private set; }
 
         public FuzzyValueSet OutputValueSet { get; private set; }

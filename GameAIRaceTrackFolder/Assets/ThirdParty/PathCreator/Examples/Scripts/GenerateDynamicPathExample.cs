@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿//#define PATH_DEBUG
+
+using System.Collections.Generic;
 
 using UnityEngine;
+
+using System.Linq;
 
 namespace PathCreation.Examples {
     // Example of creating a path at runtime from a set of points.
@@ -16,9 +20,7 @@ namespace PathCreation.Examples {
 
         public float RandAbsAngle = 30f;
 
-        public float DB_followerPos = 0f;
-
-        public int seed = 424242;
+        public string seed = "424242";
 
         public float AngleMaxRandomAccel = 10f;
 
@@ -53,11 +55,24 @@ namespace PathCreation.Examples {
         }
 
 
+        Random.State currState;
+
+#if PATH_DEBUG
+        public Vector3[] DB_initPts;
+        public float DB_initLen;
+        public int DB_initSegs;
+#endif
 
         void Start() {
 
+            int iseed;
 
-            Random.InitState(seed);
+            if(!int.TryParse(seed, out iseed))
+            {
+                iseed = seed.GetHashCode();
+            }
+            
+            Random.InitState(iseed);
 
             //Vector3 v2 = Mode2D ?
             //    Quaternion.AngleAxis(Random.Range(-180f, 180f), Vector3.up) * Vector3.right :
@@ -76,9 +91,17 @@ namespace PathCreation.Examples {
                 pts[i] = new Vector3(0f, 0f, fval - i * size);
             }
 
+            
 
             BezierPath bezierPath = new BezierPath(pts, closedLoop, Mode2D ? PathSpace.xz : PathSpace.xyz);
             pathCreator.bezierPath = bezierPath;
+
+#if PATH_DEBUG
+            DB_initPts = pts;
+            DB_initLen = pathCreator.path.length;
+            DB_initSegs = pathCreator.bezierPath.NumSegments;
+#endif
+
             bezierPath.ControlPointMode = BezierPath.ControlMode.Aligned;
 
             //// Need enough points that follower doesn't run off the path
@@ -89,6 +112,7 @@ namespace PathCreation.Examples {
             //    //AddRandomSegmentToPath();
             //}
 
+            currState = Random.state;
         }
 
         // Need for random rotations. Uses plane eqn to find perpendicular vector
@@ -291,9 +315,17 @@ namespace PathCreation.Examples {
 
 
         public int DB_updateCount = 0;
+        public float DB_followerPos = 0f;      
+        public float DB_length = 0f;
+        public int DB_currSeg = 0;
+        public int DB_numSegs = 0;
+        public float[] DB_items;
+        public float[] DB_segLens;
 
         private void Update()
         {
+            Random.state = currState;
+
             ++DB_updateCount;
 
             //var pathLength = pathCreator.path.length;
@@ -301,12 +333,31 @@ namespace PathCreation.Examples {
             var currSeg = pathFollower.currentBezierSegmentIndex;
 
             DB_followerPos = pathFollower.distanceTravelled;
+            
 
             var bp = pathCreator.bezierPath;
 
+            var path = pathCreator.path;
+
+            DB_length = pathCreator.path.length;
+
+            DB_currSeg = currSeg;
+
+            DB_numSegs = bp.NumSegments;
+
+            var items = path.cumulativeLengthAtEachVertex.Where((item, index) => path.localAnchorVertexIndex.Contains(index));
+
+            DB_items = items.ToArray();
+
+            items = items.Zip(items.Skip(1), (x, y) => y - x);
+
+            var arrItems = items.ToArray();
+
+            DB_segLens = arrItems;
+
             if (currSeg > 3)
             {
-                //Debug.Log("Del-Add seg");
+                //Debug.Log($"Del-Add seg b/c currSeg is: {currSeg}");
                 // del first seg
                 //bp.DeleteSegment(0);
 
@@ -314,6 +365,8 @@ namespace PathCreation.Examples {
                 RemoveFirstAndAddRandomSegmentToPath();
 
             }
+
+            currState = Random.state;
 
         }
 

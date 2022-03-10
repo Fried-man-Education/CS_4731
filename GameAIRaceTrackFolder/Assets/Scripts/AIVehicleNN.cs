@@ -157,8 +157,7 @@ namespace GameAI
 
         // When IsPlayer is false you can use this to control the steering
         float steering;
-        public float Steering
-        {
+        public float Steering {
             get { return steering; }
 
 #if USE_MLAGENTS
@@ -171,22 +170,21 @@ namespace GameAI
             }
         
 #endif
-        }
+		}
 
         protected float InternalSteering
         {
             get { return steering; }
             set { steering = Mathf.Clamp(value, -1f, 1f); }
         }
-
+        
         // When IsPlayer is false you can use this to control the throttle
         float throttle;
-        public float Throttle
-        {
+        public float Throttle {
             get { return throttle; }
 
 #if USE_MLAGENTS
-            set { throttle = Mathf.Clamp(value, -1f, 1f); }
+			set { throttle = Mathf.Clamp(value, -1f, 1f); }
 #else		
 			set {
                 if(IsPlayer)
@@ -295,11 +293,11 @@ namespace GameAI
         //public float DB_internal_steering;
 
         public void ApplyFuzzyRules<T, S>(
-            FuzzyRuleSet<T> throttleFRS,
+            FuzzyRuleSet<T> throttleFRS, 
             FuzzyRuleSet<S> steerFRS,
             FuzzyValueSet fuzzyValueSet
-            )
-            where T : struct, IConvertible where S : struct, IConvertible
+            ) 
+            where T: struct, IConvertible where S: struct, IConvertible
         {
             InternalThrottle = throttleFRS.Evaluate(fuzzyValueSet);
             InternalSteering = steerFRS.Evaluate(fuzzyValueSet);
@@ -364,7 +362,7 @@ namespace GameAI
             DB_Throttle = Throttle;
             DB_Steering = Steering;
 
-            if (IsPlayer && IsPlayer != wasPlayer)
+            if(IsPlayer && IsPlayer != wasPlayer)
             {
                 throw new UnityException("Cheat detected!");
             }

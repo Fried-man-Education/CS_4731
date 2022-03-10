@@ -18,11 +18,20 @@ public class GameManager : Singleton<GameManager>
     public int Wipeouts = 0;
     public float KpHLTA = 0f;
     public float MetersTravelled = 0f;
+    public float MinThrottle = float.MaxValue;
+    public float MaxThrottle = 0f;
+
+    private void Awake()
+    {
+        //QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = 60;
+
+    }
 
     // Start is called before the first frame update
     void Start()
     {
-        
+      
     }
 
     // Update is called once per frame

@@ -40,7 +40,7 @@ namespace GameAI
 {
     [RequireComponent(typeof(Rigidbody))]
     [RequireComponent(typeof(PathTracker))]
-    public class AIVehicle :
+    public partial class AIVehicle :
 
 #if USE_MLAGENTS
         Agent
@@ -159,46 +159,43 @@ namespace GameAI
 
         // When IsPlayer is false you can use this to control the steering
         float steering;
-        public float Steering
-        {
+        public float Steering {
             get { return steering; }
 
 #if USE_MLAGENTS
             set { steering = steerAngle * Mathf.Clamp(value, -1f, 1f); }
 #else
             set
-            {
-                if (IsPlayer)
+            {        	
+                if(IsPlayer)    
                     steering = Mathf.Clamp(value, -1f, 1f);
             }
-
+        
 #endif
-        }
+		}
 
-        protected float InternalSteering
+        private float InternalSteering
         {
             get { return steering; }
             set { steering = Mathf.Clamp(value, -1f, 1f); }
         }
-
+        
         // When IsPlayer is false you can use this to control the throttle
         float throttle;
-        public float Throttle
-        {
+        public float Throttle {
             get { return throttle; }
 
 #if USE_MLAGENTS
 			set { throttle = Mathf.Clamp(value, -1f, 1f); }
-#else
-            set
-            {
-                if (IsPlayer)
+#else		
+			set {
+                if(IsPlayer)
                     throttle = Mathf.Clamp(value, -1f, 1f);
-            }
+            } 
 #endif
         }
 
-        protected float InternalThrottle
+        private float InternalThrottle
         {
             get { return throttle; }
             set
@@ -263,11 +260,32 @@ namespace GameAI
 
 
         [Header("HUD")]
-        [SerializeField] protected bool OutputToHUD;
+        [SerializeField] protected bool outputToHUD;
 
-        [SerializeField] protected bool FreezeHUDAtTime;
+        [SerializeField] protected bool freezeHUDAtTime;
 
-        [SerializeField] protected int FreezeHUDSeconds = 5 * 60;
+        [SerializeField] protected int freezeHUDSeconds = 5 * 60;
+
+        [SerializeField] protected RectTransform vizInputMarker;
+
+        [SerializeField] protected TMPro.TextMeshProUGUI vizText;
+
+
+        public bool OutputToHUD { get => outputToHUD; set => outputToHUD = value; }
+
+        public bool FreezeHUDAtTime { get => freezeHUDAtTime; set => freezeHUDAtTime = value; }
+
+        public int FreezeHUDSeconds { get => freezeHUDSeconds; set => freezeHUDSeconds = value; }
+
+        public RectTransform VizInputMarker { get => vizInputMarker;
+            set {
+                UnityEngine.Debug.Log("SETTING");
+                vizInputMarker = value;
+            } }
+
+        public TMPro.TextMeshProUGUI VizText { get => vizText; set => vizText = value; }
+
+
 
         [Header("Death and Dismemberment")]
         [SerializeField] float FallYPos = -5f;
@@ -282,6 +300,9 @@ namespace GameAI
         WheelCollider[] wheels;
 
         protected Vector3 AngularVelocity { get => _rb.angularVelocity; }
+
+        protected Vector3 Velocity { get => _rb.velocity; }
+
 
         protected PathTracker pathTracker;
 
@@ -298,14 +319,47 @@ namespace GameAI
         //public float DB_internal_steering;
 
         public void ApplyFuzzyRules<T, S>(
-            FuzzyRuleSet<T> throttleFRS,
+            FuzzyRuleSet<T> throttleFRS, 
             FuzzyRuleSet<S> steerFRS,
-            FuzzyValueSet fuzzyValueSet
-            )
-            where T : struct, IConvertible where S : struct, IConvertible
+            FuzzyValueSet fuzzyValueSet,
+            out FuzzyValue<T>[] throttleRuleOutput,
+            out FuzzyValue<S>[] steeringRuleOutput,
+            ref FuzzyValueSet mergedThrottle,
+            ref FuzzyValueSet mergedSteering
+            ) 
+            where T: struct, IConvertible where S: struct, IConvertible
         {
-            InternalThrottle = throttleFRS.Evaluate(fuzzyValueSet);
-            InternalSteering = steerFRS.Evaluate(fuzzyValueSet);
+
+            // Manually evaluate so we can probe each step for debugging purposes
+
+            if (!hardCodeThrottle)
+            {
+                throttleRuleOutput = throttleFRS.RuleEvaluator.EvaluateRules(throttleFRS.Rules, fuzzyValueSet);
+                var throttleMerger = throttleFRS.OutputsMerger;//new CachedOutputsFuzzyValuesMerger<T>();
+                throttleMerger.MergeValues(throttleRuleOutput, mergedThrottle);
+                var throttleDefuzz = throttleFRS.Defuzzer;
+                InternalThrottle = throttleDefuzz.Defuzze(throttleFRS.OutputVarSet, mergedThrottle);
+            }
+            else
+            {
+                throttleRuleOutput = null;
+                InternalThrottle = hardCodedThrottleVal;
+            }
+
+            if (!hardCodeSteering)
+            {
+                steeringRuleOutput = steerFRS.RuleEvaluator.EvaluateRules(steerFRS.Rules, fuzzyValueSet);
+                var steeringMerger = steerFRS.OutputsMerger;//new CachedOutputsFuzzyValuesMerger<T>();
+                steeringMerger.MergeValues(steeringRuleOutput, mergedSteering);
+                var steeringDefuzz = steerFRS.Defuzzer;
+                InternalSteering = steeringDefuzz.Defuzze(steerFRS.OutputVarSet, mergedSteering);
+            }
+            else
+            {
+                steeringRuleOutput = null;
+                InternalSteering = hardCodedSteeringVal;
+            }
+
         }
 
 
@@ -316,20 +370,34 @@ namespace GameAI
             if (pathTracker == null) UnityEngine.Debug.LogError("No path tracker");
 
             //stopwatch = new Stopwatch();
+
+            //if (vizInputMarker == null)
+            //    UnityEngine.Debug.LogError("No input viz marker");
         }
 
 
-        bool wasPlayer = false;
+        private bool wasPlayer = false;
+
+        private bool hardCodeSteering = false;
+        private bool reportedHardCodeSteering = false;
+        private float hardCodedSteeringVal = 0f;
+        private bool hardCodeThrottle = false;
+        private bool reportedHardCodeThrottle = false;
+        private float hardCodedThrottleVal = 0f;
+
+        public Vector3[] vizInputCorners = new Vector3[4];
+       
 
         // Init rigidbody, center of mass, wheels and more
         virtual protected void Start()
         {
             wasPlayer = IsPlayer;
 
-            //stopwatch.Start();
-            startTime = Time.timeSinceLevelLoad;
-
-            startDist = pathTracker.totalDistanceTravelled;
+            if (vizInputMarker != null)
+            {
+                var vizPar = vizInputMarker.parent.GetComponent<RectTransform>();
+                vizPar.GetLocalCorners(vizInputCorners);
+            }
 
             GameManager.Instance.StudentNameTMP.text += StudentName + System.Environment.NewLine;
 
@@ -359,7 +427,45 @@ namespace GameAI
             {
                 wheel.motorTorque = 0.0001f;
             }
+
+
+
+            ResetCar(false);
+
+
+            //stopwatch.Start();
+            startTime = Time.timeSinceLevelLoad;
+
+            startDist = pathTracker.totalDistanceTravelled;
         }
+
+
+        protected void HardCodeThrottle(float v)
+        {
+            hardCodedThrottleVal = v;
+            InternalThrottle = v;
+            hardCodeThrottle = true;
+
+            if (!reportedHardCodeThrottle)
+            {
+                reportedHardCodeThrottle = true;
+                throw new UnityException("Hard coded throttle only allowed for testing.");
+            }
+        }
+
+        protected void HardCodeSteering(float v)
+        {
+            hardCodedSteeringVal = v;
+            InternalSteering = v;
+            hardCodeSteering = true;
+
+            if (!reportedHardCodeSteering)
+            {
+                reportedHardCodeSteering = true;
+                throw new UnityException("Hard coded steering only allowed for testing.");
+            }
+        }
+
 
         // Visual feedbacks and boost regen
         virtual protected void Update()
@@ -367,7 +473,7 @@ namespace GameAI
             DB_Throttle = Throttle;
             DB_Steering = Steering;
 
-            if (IsPlayer && IsPlayer != wasPlayer)
+            if( IsPlayer && IsPlayer != wasPlayer)
             {
                 throw new UnityException("Cheat detected!");
             }
@@ -542,13 +648,15 @@ namespace GameAI
             gm.Wipeouts = numResets;
             gm.KpHLTA = averageSpeed;
             gm.MetersTravelled = pathTracker.totalDistanceTravelled;
+            gm.MinThrottle = Mathf.Min(gm.MinThrottle, Throttle);
+            gm.MaxThrottle = Mathf.Max(gm.MaxThrottle, Throttle);
 
-            if (OutputToHUD)
+            if (outputToHUD)
             {
 
-                if (FreezeHUDAtTime && (elpsSec > (float)FreezeHUDSeconds))
+                if (freezeHUDAtTime && (elpsSec > (float)freezeHUDSeconds))
                 {
-                    gm.ElapsedTMP.text = TimeSpan.FromSeconds((double)FreezeHUDSeconds).ToString(@"hh\:mm\:ss\.fff");//stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
+                    gm.ElapsedTMP.text = TimeSpan.FromSeconds((double)freezeHUDSeconds).ToString(@"hh\:mm\:ss\.fff");//stopwatch.Elapsed.ToString(@"hh\:mm\:ss");
                 }
                 else
                 {
@@ -562,6 +670,12 @@ namespace GameAI
                     gm.WipeoutsTMP.text = numResets.ToString();
                 }
 
+
+                if (vizInputMarker != null)
+                {
+                    vizInputMarker.localPosition = new Vector3((vizInputCorners[2].x - vizInputCorners[0].x) * 0.5f * Steering / steerAngle, (vizInputCorners[2].y - vizInputCorners[0].y) * 0.5f * Throttle, 0f);
+
+                }
             }
 
         }
@@ -590,10 +704,17 @@ namespace GameAI
         protected float timeOfBkwds = 0f;
         protected float timeOfBkwdsTimeout = 5f;
 
+
         protected virtual void ResetCar()
         {
+            ResetCar(true);
+        }
 
-            ++numResets;
+        protected virtual void ResetCar(bool trackResetCountAndPreserveDist)
+        {
+            UnityEngine.Debug.Log("reset car");
+            if (trackResetCountAndPreserveDist)
+                ++numResets;
 
             tilted = false;
             stopped = false;
@@ -604,13 +725,16 @@ namespace GameAI
             // make room for the car chassis to fit on road
             float minAllowedDist = 3f;
 
-            if (pathTracker.distanceTravelled < minAllowedDist)
+            if (!trackResetCountAndPreserveDist || pathTracker.distanceTravelled < minAllowedDist)
             {
+                UnityEngine.Debug.Log("reset to min");
                 pathTracker.ResetToDistance(minAllowedDist);
+                pathTracker.ResetTotalDistance();
             }
 
             if (pathTracker.distanceTravelled > (pathTracker.MaxPathDistance - minAllowedDist))
             {
+                UnityEngine.Debug.Log("reset to max");
                 pathTracker.ResetToDistance(pathTracker.MaxPathDistance - minAllowedDist);
             }
 
@@ -748,7 +872,7 @@ namespace GameAI
             _rb.angularVelocity = Vector3.zero;
         }
 
-        public void toogleHandbrake(bool h)
+        public void ToggleHandbrake(bool h)
         {
             handbrake = h;
         }
@@ -783,6 +907,50 @@ namespace GameAI
         }
 
 #endif
+
+
+        static public void DiagnosticPrintFuzzyValueSet<T>(FuzzyValueSet fzset, System.Text.StringBuilder sb) where T : struct, IConvertible
+        {
+            Type typ = typeof(T);
+            sb.AppendLine(typ.Name);
+
+            if (fzset == null)
+            {
+                sb.AppendLine("null");
+                return;
+            }
+
+            foreach (var e in System.Enum.GetValues(typ))
+            {
+                var v = fzset.Get<T>((T)e);
+
+                //UnityEngine.Debug.Log($"{v.linguisticVariable}::{v.membershipDegree}");
+                sb.AppendLine($"{v.linguisticVariable}::{v.membershipDegree:0.00}");
+
+            }
+
+        }
+
+        static public void DiagnosticPrintRuleSet<T>(FuzzyRuleSet<T> fzRuleSet, FuzzyValue<T>[] fzRuleOutpts, System.Text.StringBuilder sb) where T : struct, IConvertible
+        {
+            Type typ = typeof(T);
+            sb.AppendLine(typ.Name);
+
+            if (fzRuleSet == null || fzRuleSet.Rules == null || fzRuleOutpts == null)
+            {
+                sb.AppendLine("null");
+                return;
+            }
+
+            for (int i = 0; i < fzRuleOutpts.Length; ++i)// (var ro in ruleOutputs)
+            {
+                var ro = fzRuleOutpts[i];
+                var r = fzRuleSet.Rules[i];
+                sb.AppendLine($"{r.ToString()}::{ro.membershipDegree:0.00}::{ro.Confidence:0.00}");
+            }
+
+        }
+
 
     }
 }
