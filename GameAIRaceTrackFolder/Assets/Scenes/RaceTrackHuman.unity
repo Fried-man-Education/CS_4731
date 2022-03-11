@@ -1661,7 +1661,7 @@ MonoBehaviour:
   boostClip: {fileID: 8300000, guid: 7c29c309722a2444582a425e8e6aeb77, type: 3}
   boostSource: {fileID: 1778594524}
   outputToHUD: 1
-  freezeHUDAtTime: 0
+  freezeHUDAtTime: 1
   freezeHUDSeconds: 300
   vizInputMarker: {fileID: 122468581}
   vizText: {fileID: 122468580}

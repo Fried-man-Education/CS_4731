@@ -7,6 +7,7 @@ namespace PathCreation.Examples
     public class PathTracker : MonoBehaviour
     {
         public PathCreator pathCreator;
+        RoadMeshCreator roadMeshCreator;
         float lastDistanceTravelled = 0f;
         public float distanceTravelled = 0f;
         public float totalDistanceTravelled = 0f;
@@ -21,6 +22,31 @@ namespace PathCreation.Examples
         //float oldestBezierSegmentLen =  -1f;
 
         public Vector3 eulerOffsetRot = Vector3.zero;
+
+        public float HalfRoadWidth
+        {
+            get => roadMeshCreator.roadWidth;
+        }
+
+
+        private void Awake()
+        {
+            if (pathCreator == null)
+            {
+                Debug.LogError("No pathCreator assigned!");
+            }
+
+            if (pathCreator != null)
+            {
+                roadMeshCreator = pathCreator.GetComponent<RoadMeshCreator>();
+
+                if (roadMeshCreator == null)
+                {
+                    Debug.LogError("No roadMeshCreator found!");
+                }
+            }
+
+        }
 
         void Start()
         {

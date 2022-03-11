@@ -2679,19 +2679,20 @@ MonoBehaviour:
   boostParticles: []
   boostClip: {fileID: 8300000, guid: 7c29c309722a2444582a425e8e6aeb77, type: 3}
   boostSource: {fileID: 1778594524}
-  OutputToHUD: 1
-  FreezeHUDAtTime: 1
-  FreezeHUDSeconds: 300
+  outputToHUD: 1
+  freezeHUDAtTime: 0
+  freezeHUDSeconds: 300
+  vizInputMarker: {fileID: 0}
+  vizText: {fileID: 0}
   FallYPos: -5
   SpawnYPos: 0.05
   DB_Throttle: 0
   DB_Steering: 0
-  absRoadWidth: 5
-  DB_normSpeed: 0
-  DB_normNearCurvAngle: 0
-  DB_normFutureCurvAngle: 0
-  DB_normDistFromMiddle: 0
-  DB_normRelHeadingAngle: 0
+  vizInputCorners:
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
+  - {x: 0, y: 0, z: 0}
   EpisodeLenSec: 360
   DB_RewardTotal: 0
 --- !u!4 &1778594528 stripped
