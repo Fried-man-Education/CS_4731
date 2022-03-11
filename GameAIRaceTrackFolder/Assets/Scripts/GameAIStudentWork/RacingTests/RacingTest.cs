@@ -64,7 +64,7 @@ namespace Tests
 
 
             var targetSpeed = 45f;
-            var extraCreditSpeed = 6f;
+            var extraCreditSpeed = 58f;
             var minAllowedSpeed = 30f;
 
             var speedScoreWeight = 0.6f;
@@ -93,7 +93,7 @@ namespace Tests
 
             if (gm.Wipeouts <= 0)
             {
-                extraCredit = Mathf.Lerp(extraCreditWeight, 0f,
+                extraCredit = Mathf.Lerp(0f, extraCreditWeight,
 
                      Power(
                          Mathf.InverseLerp(targetSpeed, extraCreditSpeed, gm.KpHLTA)
