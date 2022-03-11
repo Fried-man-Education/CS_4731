@@ -445,7 +445,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4790302071202098, guid: cd5e7f64f2260438cb7830953c384a5e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 4790302071202098, guid: cd5e7f64f2260438cb7830953c384a5e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1697,6 +1697,8 @@ MonoBehaviour:
   Wipeouts: 0
   KpHLTA: 0
   MetersTravelled: 0
+  MinThrottle: 3.4028235e+38
+  MaxThrottle: 0
 --- !u!4 &1887764250
 Transform:
   m_ObjectHideFlags: 0

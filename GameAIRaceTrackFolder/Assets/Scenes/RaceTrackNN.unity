@@ -635,7 +635,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4790302071202098, guid: cd5e7f64f2260438cb7830953c384a5e, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 0
+      value: 60
       objectReference: {fileID: 0}
     - target: {fileID: 4790302071202098, guid: cd5e7f64f2260438cb7830953c384a5e, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1479,8 +1479,6 @@ MonoBehaviour:
   prevTextureOffset: 0
   DB_UpdatedOffset: 0
   DB_texOffsetErr: 0
-  DB_segLens:
-  - 4.060532
   meshHolder: {fileID: 1646890433}
 --- !u!114 &1073702044
 MonoBehaviour:
@@ -1497,7 +1495,6 @@ MonoBehaviour:
   pathFollower: {fileID: 1778594531}
   Mode2D: 1
   RandAbsAngle: 30
-  DB_followerPos: 0
   seed: 424242
   AngleMaxRandomAccel: 55
   AngleAbsMaxVel: 25
@@ -1509,6 +1506,12 @@ MonoBehaviour:
   SegMinLen: 10
   SegMaxLen: 10
   DB_updateCount: 0
+  DB_followerPos: 0
+  DB_length: 0
+  DB_currSeg: 0
+  DB_numSegs: 0
+  DB_items: []
+  DB_segLens: []
 --- !u!1 &1174123568
 GameObject:
   m_ObjectHideFlags: 0
@@ -2806,6 +2809,8 @@ MonoBehaviour:
   Wipeouts: 0
   KpHLTA: 0
   MetersTravelled: 0
+  MinThrottle: 3.4028235e+38
+  MaxThrottle: 0
 --- !u!4 &1887764250
 Transform:
   m_ObjectHideFlags: 0
