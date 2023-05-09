@@ -1,4 +1,4 @@
-﻿#if !UNITY_WSA_10_0
+#if !UNITY_WSA_10_0
 
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.DnnModule;
@@ -27,7 +27,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// IMAGE_FILENAME
         /// </summary>
-        protected static readonly string NET_FILENAME = "dnn/dasiamrpn_model.onnx";
+        protected static readonly string NET_FILENAME = "OpenCVForUnity/dnn/dasiamrpn_model.onnx";
 
         /// <summary>
         /// The net filepath.
@@ -37,7 +37,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// KERNEL_R1_FILENAME
         /// </summary>
-        protected static readonly string KERNEL_R1_FILENAME = "dnn/dasiamrpn_kernel_r1.onnx";
+        protected static readonly string KERNEL_R1_FILENAME = "OpenCVForUnity/dnn/dasiamrpn_kernel_r1.onnx";
 
         /// <summary>
         /// The kernel_r1 filepath.
@@ -47,7 +47,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// KERNEL_CLS1_FILENAME
         /// </summary>
-        protected static readonly string KERNEL_CLS1_FILENAME = "dnn/dasiamrpn_kernel_cls1.onnx";
+        protected static readonly string KERNEL_CLS1_FILENAME = "OpenCVForUnity/dnn/dasiamrpn_kernel_cls1.onnx";
 
         /// <summary>
         /// The kernel_cls1 filepath.
@@ -96,7 +96,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// VIDEO_FILENAME
         /// </summary>
-        protected static readonly string VIDEO_FILENAME = "768x576_mjpeg.mjpeg";
+        protected static readonly string VIDEO_FILENAME = "OpenCVForUnity/768x576_mjpeg.mjpeg";
 
         // Use this for initialization
         void Start()
@@ -147,12 +147,24 @@ namespace OpenCVForUnityExample
         // Use this for initialization
         void Run()
         {
-            tracker = new DaSiamRPNTracker(net_filepath, kernel_r1_filepath, kernel_cls1_filepath);
+            //if true, The error log of the Native side OpenCV will be displayed on the Unity Editor Console.
+            Utils.setDebugMode(true);
+
+            if (string.IsNullOrEmpty(net_filepath) || string.IsNullOrEmpty(kernel_r1_filepath) || string.IsNullOrEmpty(kernel_cls1_filepath))
+            {
+                Debug.LogError(NET_FILENAME + " or " + KERNEL_R1_FILENAME + " or " + KERNEL_CLS1_FILENAME + " is not loaded. Please read “StreamingAssets/OpenCVForUnity/dnn/setup_dnn_module.pdf” to make the necessary setup.");
+            }
+            else
+            {
+                tracker = new DaSiamRPNTracker(net_filepath, kernel_r1_filepath, kernel_cls1_filepath);
+            }
 
             if (string.IsNullOrEmpty(sourceToMatHelper.requestedVideoFilePath))
                 sourceToMatHelper.requestedVideoFilePath = VIDEO_FILENAME;
             sourceToMatHelper.outputColorFormat = VideoCaptureToMatHelper.ColorFormat.RGB; // DaSiamRPNTracker API must handle 3 channels Mat image.
             sourceToMatHelper.Initialize();
+
+            Utils.setDebugMode(false);
         }
 
         /// <summary>
@@ -165,7 +177,7 @@ namespace OpenCVForUnityExample
             Mat rgbMat = sourceToMatHelper.GetMat();
 
             texture = new Texture2D(rgbMat.cols(), rgbMat.rows(), TextureFormat.RGB24, false);
-            Utils.fastMatToTexture2D(rgbMat, texture);
+            Utils.matToTexture2D(rgbMat, texture);
 
             gameObject.GetComponent<Renderer>().material.mainTexture = texture;
 
@@ -224,6 +236,21 @@ namespace OpenCVForUnityExample
         {
             if (!sourceToMatHelper.IsInitialized())
                 return;
+
+            if (tracker == null)
+            {
+                if (sourceToMatHelper.IsPlaying() && sourceToMatHelper.DidUpdateThisFrame())
+                {
+                    Mat rgbMat = sourceToMatHelper.GetMat();
+
+                    Imgproc.putText(rgbMat, "model file is not loaded.", new Point(5, rgbMat.rows() - 30), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+                    Imgproc.putText(rgbMat, "Please read console message.", new Point(5, rgbMat.rows() - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+
+                    Utils.matToTexture2D(rgbMat, texture);
+                }
+                return;
+            }
+
 
 #if ((UNITY_ANDROID || UNITY_IOS) && !UNITY_EDITOR)
             //Touch
@@ -320,7 +347,7 @@ namespace OpenCVForUnityExample
                         }
                     }
 
-                    Utils.fastMatToTexture2D(rgbMat, texture);
+                    Utils.matToTexture2D(rgbMat, texture);
                 }
             }
             else
@@ -441,7 +468,7 @@ namespace OpenCVForUnityExample
                 texture = null;
             }
 
-            if (!tracker.isDisposed)
+            if (tracker != null)
             {
                 tracker.dispose();
             }
@@ -547,15 +574,15 @@ namespace OpenCVForUnityExample
 
             if (net.empty())
             {
-                Debug.LogError("model file is not loaded. The model and class names list can be downloaded here: \"https://www.dropbox.com/s/rr1lk9355vzolqv/dasiamrpn_model.onnx?dl=0\". Please copy to “Assets/StreamingAssets/dnn/” folder. ");
+                Debug.LogError("model file is not loaded. The model and class names list can be downloaded here: \"https://www.dropbox.com/s/rr1lk9355vzolqv/dasiamrpn_model.onnx?dl=0\". Please copy to “Assets/StreamingAssets/OpenCVForUnity/dnn/” folder. ");
             }
             if (kernel_r1.empty())
             {
-                Debug.LogError("model file is not loaded. The model and class names list can be downloaded here: \"https://www.dropbox.com/s/999cqx5zrfi7w4p/dasiamrpn_kernel_r1.onnx?dl=0\". Please copy to “Assets/StreamingAssets/dnn/” folder. ");
+                Debug.LogError("model file is not loaded. The model and class names list can be downloaded here: \"https://www.dropbox.com/s/999cqx5zrfi7w4p/dasiamrpn_kernel_r1.onnx?dl=0\". Please copy to “Assets/StreamingAssets/OpenCVForUnity/dnn/” folder. ");
             }
             if (kernel_cls1.empty())
             {
-                Debug.LogError("model file is not loaded. The model and class names list can be downloaded here: \"https://www.dropbox.com/s/qvmtszx5h339a0w/dasiamrpn_kernel_cls1.onnx?dl=0\". Please copy to “Assets/StreamingAssets/dnn/” folder. ");
+                Debug.LogError("model file is not loaded. The model and class names list can be downloaded here: \"https://www.dropbox.com/s/qvmtszx5h339a0w/dasiamrpn_kernel_cls1.onnx?dl=0\". Please copy to “Assets/StreamingAssets/OpenCVForUnity/dnn/” folder. ");
             }
         }
 
@@ -596,7 +623,7 @@ namespace OpenCVForUnityExample
             z_crop = Dnn.blobFromImage(z_crop);
 
             net.setInput(z_crop);
-            Mat z_f = net.forward("63");
+            Mat z_f = net.forward("onnx_node_output_0!63");
             kernel_r1.setInput(z_f);
             Mat r1 = kernel_r1.forward();
             kernel_cls1.setInput(z_f);
@@ -604,8 +631,8 @@ namespace OpenCVForUnityExample
             r1 = r1.reshape(1, new int[] { 20, 256, 4, 4 });
             cls1 = cls1.reshape(1, new int[] { 10, 256, 4, 4 });
 
-            net.setParam(new DictValue(net.getLayerId("65")), 0, r1);
-            net.setParam(new DictValue(net.getLayerId("68")), 0, cls1);
+            net.setParam(net.getLayerId("onnx_node_output_0!65"), 0, r1);
+            net.setParam(net.getLayerId("onnx_node_output_0!68"), 0, cls1);
 
             _isInitialized = true;
         }

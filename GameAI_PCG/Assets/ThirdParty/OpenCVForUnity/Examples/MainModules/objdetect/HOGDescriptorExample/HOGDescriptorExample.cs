@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ObjdetectModule;
@@ -38,7 +38,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// VIDEO_FILENAME
         /// </summary>
-        protected static readonly string VIDEO_FILENAME = "768x576_mjpeg.mjpeg";
+        protected static readonly string VIDEO_FILENAME = "OpenCVForUnity/768x576_mjpeg.mjpeg";
 
         // Use this for initialization
         void Start()
@@ -62,7 +62,7 @@ namespace OpenCVForUnityExample
             Mat rgbMat = sourceToMatHelper.GetMat();
 
             texture = new Texture2D(rgbMat.cols(), rgbMat.rows(), TextureFormat.RGB24, false);
-            Utils.fastMatToTexture2D(rgbMat, texture);
+            Utils.matToTexture2D(rgbMat, texture);
 
             gameObject.GetComponent<Renderer>().material.mainTexture = texture;
 
@@ -138,7 +138,7 @@ namespace OpenCVForUnityExample
                     //Debug.Log (locations.ToString ());
                     //Debug.Log (weights.ToString ());
 
-                    Utils.fastMatToTexture2D(rgbMat, texture);
+                    Utils.matToTexture2D(rgbMat, texture);
                 }
             }
         }

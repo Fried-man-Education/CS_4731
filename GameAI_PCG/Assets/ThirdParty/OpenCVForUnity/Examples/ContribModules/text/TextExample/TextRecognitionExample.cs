@@ -1,4 +1,4 @@
-﻿#if !UNITY_WSA_10_0
+#if !UNITY_WSA_10_0
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -25,7 +25,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// IMAGE_FILENAME
         /// </summary>
-        protected static readonly string IMAGE_FILENAME = "text/test_text.jpg";
+        protected static readonly string IMAGE_FILENAME = "OpenCVForUnity/text/test_text.jpg";
 
         /// <summary>
         /// The image filepath.
@@ -35,7 +35,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// TRAINED_CLASSIFIER_NM_1_FILENAME
         /// </summary>
-        protected static readonly string TRAINED_CLASSIFIER_NM_1_FILENAME = "text/trained_classifierNM1.xml";
+        protected static readonly string TRAINED_CLASSIFIER_NM_1_FILENAME = "OpenCVForUnity/text/trained_classifierNM1.xml";
 
         /// <summary>
         /// The trained classifierNM1 filepath.
@@ -45,7 +45,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// TRAINED_CLASSIFIER_NM_2_FILENAME
         /// </summary>
-        protected static readonly string TRAINED_CLASSIFIER_NM_2_FILENAME = "text/trained_classifierNM2.xml";
+        protected static readonly string TRAINED_CLASSIFIER_NM_2_FILENAME = "OpenCVForUnity/text/trained_classifierNM2.xml";
 
         /// <summary>
         /// The trained classifierNM2 filepath.
@@ -55,7 +55,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// CLASSIFIER_NM_2_FILENAME
         /// </summary>
-        protected static readonly string OCRHMM_TRANSITIONS_TABLE_FILENAME = "text/OCRHMM_transitions_table.xml";
+        protected static readonly string OCRHMM_TRANSITIONS_TABLE_FILENAME = "OpenCVForUnity/text/OCRHMM_transitions_table.xml";
 
         /// <summary>
         /// The OCRHMM transitions table filepath.
@@ -67,9 +67,9 @@ namespace OpenCVForUnityExample
         /// </summary>
         /// https://stackoverflow.com/questions/4666098/why-does-android-aapt-remove-gz-file-extension-of-assets
 #if UNITY_ANDROID && !UNITY_EDITOR
-        protected static readonly string OCRHMM_KNN_MODEL_FILENAME = "text/OCRHMM_knn_model_data.xml";
+        protected static readonly string OCRHMM_KNN_MODEL_FILENAME = "OpenCVForUnity/text/OCRHMM_knn_model_data.xml";
 #else
-        protected static readonly string OCRHMM_KNN_MODEL_FILENAME = "text/OCRHMM_knn_model_data.xml.gz";
+        protected static readonly string OCRHMM_KNN_MODEL_FILENAME = "OpenCVForUnity/text/OCRHMM_knn_model_data.xml.gz";
 #endif
 
         /// <summary>
@@ -77,29 +77,29 @@ namespace OpenCVForUnityExample
         /// </summary>
         string OCRHMM_knn_model_data_filepath;
 
-        #if UNITY_WEBGL
+#if UNITY_WEBGL
         IEnumerator getFilePath_Coroutine;
-        #endif
+#endif
 
 
         // Use this for initialization
-        void Start ()
+        void Start()
         {
-            #if UNITY_WEBGL
+#if UNITY_WEBGL
             getFilePath_Coroutine = GetFilePath ();
             StartCoroutine (getFilePath_Coroutine);
-            #else
-            image_filepath = Utils.getFilePath (IMAGE_FILENAME);
-            trained_classifierNM1_filepath = Utils.getFilePath (TRAINED_CLASSIFIER_NM_1_FILENAME);
-            trained_classifierNM2_filepath = Utils.getFilePath (TRAINED_CLASSIFIER_NM_2_FILENAME);
-            OCRHMM_transitions_table_filepath = Utils.getFilePath (OCRHMM_TRANSITIONS_TABLE_FILENAME);
-            OCRHMM_knn_model_data_filepath = Utils.getFilePath (OCRHMM_KNN_MODEL_FILENAME);
+#else
+            image_filepath = Utils.getFilePath(IMAGE_FILENAME);
+            trained_classifierNM1_filepath = Utils.getFilePath(TRAINED_CLASSIFIER_NM_1_FILENAME);
+            trained_classifierNM2_filepath = Utils.getFilePath(TRAINED_CLASSIFIER_NM_2_FILENAME);
+            OCRHMM_transitions_table_filepath = Utils.getFilePath(OCRHMM_TRANSITIONS_TABLE_FILENAME);
+            OCRHMM_knn_model_data_filepath = Utils.getFilePath(OCRHMM_KNN_MODEL_FILENAME);
 
-            Run ();
-            #endif
+            Run();
+#endif
         }
 
-        #if UNITY_WEBGL
+#if UNITY_WEBGL
         private IEnumerator GetFilePath ()
         {
             var getFilePathAsync_0_Coroutine = Utils.getFilePathAsync (IMAGE_FILENAME, (result) => {
@@ -131,124 +131,140 @@ namespace OpenCVForUnityExample
 
             Run ();
         }
-        #endif
+#endif
 
-        private void Run ()
+        private void Run()
         {
             //if true, The error log of the Native side OpenCV will be displayed on the Unity Editor Console.
-            Utils.setDebugMode (true);
+            Utils.setDebugMode(true);
 
 
-            Mat frame = Imgcodecs.imread (image_filepath);
-            if (frame.empty ()) {
-                Debug.LogError ("text/scenetext01.jpg is not loaded. Please copy from “OpenCVForUnity/StreamingAssets/text/” to “Assets/StreamingAssets/” folder. ");
+            Mat frame = Imgcodecs.imread(image_filepath);
+            if (frame.empty())
+            {
+                Debug.LogError(IMAGE_FILENAME + " is not loaded. Please move from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/” to “Assets/StreamingAssets/OpenCVForUnity/” folder.");
             }
 
-            Mat binaryMat = new Mat ();
-            Mat maskMat = new Mat ();
+            if (string.IsNullOrEmpty(trained_classifierNM1_filepath) || string.IsNullOrEmpty(trained_classifierNM2_filepath))
+            {
+                Debug.LogError(TRAINED_CLASSIFIER_NM_1_FILENAME + " or " + TRAINED_CLASSIFIER_NM_2_FILENAME + " is not loaded. Please move from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/” to “Assets/StreamingAssets/OpenCVForUnity/” folder.");
+            }
+            if (string.IsNullOrEmpty(OCRHMM_transitions_table_filepath) || string.IsNullOrEmpty(OCRHMM_knn_model_data_filepath))
+            {
+                Debug.LogError(OCRHMM_TRANSITIONS_TABLE_FILENAME + " or " + OCRHMM_KNN_MODEL_FILENAME + " is not loaded. Please move from “OpenCVForUnity/StreamingAssets/OpenCVForUnity/” to “Assets/StreamingAssets/OpenCVForUnity/” folder.");
+            }
 
 
-            List<MatOfPoint> regions = new List<MatOfPoint> ();
-
-            ERFilter er_filter1 = Text.createERFilterNM1 (trained_classifierNM1_filepath, 8, 0.00015f, 0.13f, 0.2f, true, 0.1f);
-
-            ERFilter er_filter2 = Text.createERFilterNM2 (trained_classifierNM2_filepath, 0.5f);
+            Mat binaryMat = new Mat();
+            Mat maskMat = new Mat();
 
 
-            Mat transition_p = new Mat (62, 62, CvType.CV_64FC1);
-            //            string filename = "OCRHMM_transitions_table.xml";
-            //            FileStorage fs(filename, FileStorage::READ);
-            //            fs["transition_probabilities"] >> transition_p;
-            //            fs.release();
+            List<MatOfPoint> regions = new List<MatOfPoint>();
+
+            ERFilter er_filter1 = Text.createERFilterNM1(trained_classifierNM1_filepath, 8, 0.00015f, 0.13f, 0.2f, true, 0.1f);
+
+            ERFilter er_filter2 = Text.createERFilterNM2(trained_classifierNM2_filepath, 0.5f);
+
+
+            Mat transition_p = new Mat(62, 62, CvType.CV_64FC1);
+            //string filename = "OCRHMM_transitions_table.xml";
+            //FileStorage fs(filename, FileStorage::READ);
+            //fs["transition_probabilities"] >> transition_p;
+            //fs.release();
 
             //Load TransitionProbabilitiesData.
-            transition_p.put (0, 0, GetTransitionProbabilitiesData (OCRHMM_transitions_table_filepath));
+            transition_p.put(0, 0, GetTransitionProbabilitiesData(OCRHMM_transitions_table_filepath));
 
-            Mat emission_p = Mat.eye (62, 62, CvType.CV_64FC1);
+            Mat emission_p = Mat.eye(62, 62, CvType.CV_64FC1);
             string voc = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            OCRHMMDecoder decoder = OCRHMMDecoder.create (
+            OCRHMMDecoder decoder = OCRHMMDecoder.create(
                                         OCRHMM_knn_model_data_filepath,
                                         voc, transition_p, emission_p);
 
             //Text Detection
-            Imgproc.cvtColor (frame, frame, Imgproc.COLOR_BGR2RGB);
-            Imgproc.cvtColor (frame, binaryMat, Imgproc.COLOR_RGB2GRAY);
-            Imgproc.threshold (binaryMat, binaryMat, 0, 255, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
-            Core.absdiff (binaryMat, new Scalar (255), maskMat);
+            Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2RGB);
+            Imgproc.cvtColor(frame, binaryMat, Imgproc.COLOR_RGB2GRAY);
+            Imgproc.threshold(binaryMat, binaryMat, 0, 255, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
+            Core.absdiff(binaryMat, new Scalar(255), maskMat);
 
 
-            Text.detectRegions (binaryMat, er_filter1, er_filter2, regions);
-            Debug.Log ("regions.Count " + regions.Count);
+            Text.detectRegions(binaryMat, er_filter1, er_filter2, regions);
+            Debug.Log("regions.Count " + regions.Count);
 
 
-            MatOfRect groups_rects = new MatOfRect ();
-            List<OpenCVForUnity.CoreModule.Rect> rects = new List<OpenCVForUnity.CoreModule.Rect> ();
-            Text.erGrouping (frame, binaryMat, regions, groups_rects);
+            MatOfRect groups_rects = new MatOfRect();
+            List<OpenCVForUnity.CoreModule.Rect> rects = new List<OpenCVForUnity.CoreModule.Rect>();
+            Text.erGrouping(frame, binaryMat, regions, groups_rects);
 
 
-            for (int i = 0; i < regions.Count; i++) {
-                regions [i].Dispose ();
+            for (int i = 0; i < regions.Count; i++)
+            {
+                regions[i].Dispose();
             }
-            regions.Clear ();
+            regions.Clear();
 
 
-            rects.AddRange (groups_rects.toList ());
+            rects.AddRange(groups_rects.toList());
 
-            groups_rects.Dispose ();
+            groups_rects.Dispose();
 
 
             //Text Recognition (OCR)
 
-            List<Mat> detections = new List<Mat> ();
+            List<Mat> detections = new List<Mat>();
 
-            for (int i = 0; i < (int)rects.Count; i++) {
+            for (int i = 0; i < (int)rects.Count; i++)
+            {
 
-                Mat group_img = new Mat ();
-                maskMat.submat (rects [i]).copyTo (group_img);
-                Core.copyMakeBorder (group_img, group_img, 15, 15, 15, 15, Core.BORDER_CONSTANT, new Scalar (0));
-                detections.Add (group_img);
+                Mat group_img = new Mat();
+                maskMat.submat(rects[i]).copyTo(group_img);
+                Core.copyMakeBorder(group_img, group_img, 15, 15, 15, 15, Core.BORDER_CONSTANT, new Scalar(0));
+                detections.Add(group_img);
             }
 
-            Debug.Log ("detections.Count " + detections.Count);
+            Debug.Log("detections.Count " + detections.Count);
 
 
             //#Visualization
-            for (int i = 0; i < rects.Count; i++) {
+            for (int i = 0; i < rects.Count; i++)
+            {
 
 
-                Imgproc.rectangle (frame, new Point (rects [i].x, rects [i].y), new Point (rects [i].x + rects [i].width, rects [i].y + rects [i].height), new Scalar (255, 0, 0), 2);
-                Imgproc.rectangle (frame, new Point (rects [i].x, rects [i].y), new Point (rects [i].x + rects [i].width, rects [i].y + rects [i].height), new Scalar (255, 255, 255), 1);
+                Imgproc.rectangle(frame, new Point(rects[i].x, rects[i].y), new Point(rects[i].x + rects[i].width, rects[i].y + rects[i].height), new Scalar(255, 0, 0), 2);
+                Imgproc.rectangle(frame, new Point(rects[i].x, rects[i].y), new Point(rects[i].x + rects[i].width, rects[i].y + rects[i].height), new Scalar(255, 255, 255), 1);
 
-                string output = decoder.run (detections [i], 0);
-                if (!string.IsNullOrEmpty (output)) {
-                    Debug.Log ("output " + output);
-                    Imgproc.putText (frame, output, new Point (rects [i].x, rects [i].y), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar (0, 0, 255), 1, Imgproc.LINE_AA, false);
+                string output = decoder.run(detections[i], 0);
+                if (!string.IsNullOrEmpty(output))
+                {
+                    Debug.Log("output " + output);
+                    Imgproc.putText(frame, output, new Point(rects[i].x, rects[i].y), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 0, 255), 1, Imgproc.LINE_AA, false);
                 }
             }
 
 
-            Texture2D texture = new Texture2D (frame.cols (), frame.rows (), TextureFormat.RGBA32, false);
+            Texture2D texture = new Texture2D(frame.cols(), frame.rows(), TextureFormat.RGBA32, false);
 
-            Utils.matToTexture2D (frame, texture);
+            Utils.matToTexture2D(frame, texture);
 
-//            Texture2D texture = new Texture2D (detections [0].cols (), detections [0].rows (), TextureFormat.RGBA32, false);
-//
-//            Utils.matToTexture2D (detections [0], texture);
+            //Texture2D texture = new Texture2D (detections [0].cols (), detections [0].rows (), TextureFormat.RGBA32, false);
+            //
+            //Utils.matToTexture2D (detections [0], texture);
 
-            gameObject.GetComponent<Renderer> ().material.mainTexture = texture;
+            gameObject.GetComponent<Renderer>().material.mainTexture = texture;
 
 
-            for (int i = 0; i < detections.Count; i++) {
-                detections [i].Dispose ();
+            for (int i = 0; i < detections.Count; i++)
+            {
+                detections[i].Dispose();
             }
-            binaryMat.Dispose ();
-            maskMat.Dispose ();
+            binaryMat.Dispose();
+            maskMat.Dispose();
 
-            Utils.setDebugMode (false);
+            Utils.setDebugMode(false);
         }
-    
+
         // Update is called once per frame
-        void Update ()
+        void Update()
         {
 
         }
@@ -258,30 +274,36 @@ namespace OpenCVForUnityExample
         /// </summary>
         /// <returns>The transition probabilities data.</returns>
         /// <param name="filePath">File path.</param>
-        double[] GetTransitionProbabilitiesData (string filePath)
+        double[] GetTransitionProbabilitiesData(string filePath)
         {
-            XmlDocument xmlDoc = new XmlDocument ();
-            xmlDoc.Load (filePath);
+            XmlDocument xmlDoc = new XmlDocument();
+            xmlDoc.Load(filePath);
 
 
-            XmlNode dataNode = xmlDoc.GetElementsByTagName ("data").Item (0);
-//            Debug.Log ("dataNode.InnerText " + dataNode.InnerText);
-            string[] dataString = dataNode.InnerText.Split (new string[] {
+            XmlNode dataNode = xmlDoc.GetElementsByTagName("data").Item(0);
+            //Debug.Log ("dataNode.InnerText " + dataNode.InnerText);
+            string[] dataString = dataNode.InnerText.Split(new string[] {
                 " ",
                 "\r\n", "\n"
             }, StringSplitOptions.RemoveEmptyEntries);
-//            Debug.Log ("dataString.Length " + dataString.Length);
+            //Debug.Log ("dataString.Length " + dataString.Length);
 
             double[] data = new double[dataString.Length];
-            for (int i = 0; i < data.Length; i++) {
-                try {
-                    data [i] = Convert.ToDouble (dataString [i]);
-                } catch (FormatException) {
-                    Debug.Log ("Unable to convert '{" + dataString [i] + "}' to a Double.");
-                } catch (OverflowException) {
-                    Debug.Log ("'{" + dataString [i] + "}' is outside the range of a Double.");
+            for (int i = 0; i < data.Length; i++)
+            {
+                try
+                {
+                    data[i] = Convert.ToDouble(dataString[i]);
                 }
-            }       
+                catch (FormatException)
+                {
+                    Debug.Log("Unable to convert '{" + dataString[i] + "}' to a Double.");
+                }
+                catch (OverflowException)
+                {
+                    Debug.Log("'{" + dataString[i] + "}' is outside the range of a Double.");
+                }
+            }
 
             return data;
         }
@@ -289,22 +311,22 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// Raises the destroy event.
         /// </summary>
-        void OnDestroy ()
+        void OnDestroy()
         {
-            #if UNITY_WEBGL
+#if UNITY_WEBGL
             if (getFilePath_Coroutine != null) {
                 StopCoroutine (getFilePath_Coroutine);
                 ((IDisposable)getFilePath_Coroutine).Dispose ();
             }
-            #endif
+#endif
         }
 
         /// <summary>
         /// Raises the back button click event.
         /// </summary>
-        public void OnBackButtonClick ()
+        public void OnBackButtonClick()
         {
-            SceneManager.LoadScene ("OpenCVForUnityExample");
+            SceneManager.LoadScene("OpenCVForUnityExample");
         }
     }
 }

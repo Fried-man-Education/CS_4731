@@ -1,4 +1,4 @@
-﻿#if !UNITY_WSA_10_0
+#if !UNITY_WSA_10_0
 
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -58,7 +58,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// IMAGE_FILENAME
         /// </summary>
-        string IMAGE_FILENAME = "dnn/ansel_adams3.jpg";
+        string IMAGE_FILENAME = "OpenCVForUnity/dnn/ansel_adams3.jpg";
 
         /// <summary>
         /// The image filepath.
@@ -68,7 +68,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// CAFFEMODEL_FILENAME
         /// </summary>
-        string CAFFEMODEL_FILENAME = "dnn/colorization_release_v2.caffemodel";
+        string CAFFEMODEL_FILENAME = "OpenCVForUnity/dnn/colorization_release_v2.caffemodel";
 
         /// <summary>
         /// The caffemodel filepath.
@@ -78,7 +78,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// PROTOTXT_FILENAME
         /// </summary>
-        string PROTOTXT_FILENAME = "dnn/colorization_deploy_v2.prototxt";
+        string PROTOTXT_FILENAME = "OpenCVForUnity/dnn/colorization_deploy_v2.prototxt";
 
         /// <summary>
         /// The prototxt filepath.
@@ -142,7 +142,7 @@ namespace OpenCVForUnityExample
             Mat colorized = new Mat(img.rows(), img.cols(), img.type());
             if (img.empty())
             {
-                Debug.LogError(image_filepath + " is not loaded. Please see \"StreamingAssets/dnn/setup_dnn_module.pdf\". ");
+                Debug.LogError(IMAGE_FILENAME + " is not loaded. Please read “StreamingAssets/OpenCVForUnity/dnn/setup_dnn_module.pdf” to make the necessary setup.");
                 img = new Mat(368, 368, CvType.CV_8UC3, new Scalar(0, 0, 0));
             }
 
@@ -150,7 +150,7 @@ namespace OpenCVForUnityExample
 
             if (string.IsNullOrEmpty(caffemodel_filepath) || string.IsNullOrEmpty(prototxt_filepath))
             {
-                Debug.LogError(caffemodel_filepath + " or " + prototxt_filepath + " is not loaded. Please see \"StreamingAssets/dnn/setup_dnn_module.pdf\". ");
+                Debug.LogError(CAFFEMODEL_FILENAME + " or " + PROTOTXT_FILENAME + " is not loaded. Please read “StreamingAssets/OpenCVForUnity/dnn/setup_dnn_module.pdf” to make the necessary setup.");
             }
             else
             {
@@ -166,16 +166,16 @@ namespace OpenCVForUnityExample
             {
 
                 // setup additional layers:
-                int[] sz = new int[]{ 2, 313, 1, 1 };
+                int[] sz = new int[] { 2, 313, 1, 1 };
                 Mat pts_in_hull = new Mat(sz, CvType.CV_32F);
                 pts_in_hull.put(new int[] { 0, 0, 0, 0 }, hull_pts);
 
-                Layer class8_ab = net.getLayer(new DictValue("class8_ab"));
+                Layer class8_ab = net.getLayer(net.getLayerId("class8_ab"));
                 List<Mat> blobs = class8_ab.get_blobs();
                 blobs.Add(pts_in_hull);
                 class8_ab.set_blobs(blobs);
 
-                Layer conv8_313_rh = net.getLayer(new DictValue("conv8_313_rh"));
+                Layer conv8_313_rh = net.getLayer(net.getLayerId("conv8_313_rh"));
                 blobs = conv8_313_rh.get_blobs();
                 blobs.Add(new Mat(1, 313, CvType.CV_32F, new Scalar(2.606)));
                 conv8_313_rh.set_blobs(blobs);
@@ -197,7 +197,7 @@ namespace OpenCVForUnityExample
                 Mat result = net.forward();
 
                 // retrieve the calculated a,b channels from the network output
-                Mat result_a = new Mat(result, new Range[] {new Range(0, 1), new Range(0, 1) , new Range(0, result.size(2)), new Range(0, result.size(3)) });
+                Mat result_a = new Mat(result, new Range[] { new Range(0, 1), new Range(0, 1), new Range(0, result.size(2)), new Range(0, result.size(3)) });
                 Mat result_b = new Mat(result, new Range[] { new Range(0, 1), new Range(1, 2), new Range(0, result.size(2)), new Range(0, result.size(3)) });
                 result_a = result_a.reshape(1, result.size(2));
                 result_b = result_b.reshape(1, result.size(2));
@@ -223,6 +223,8 @@ namespace OpenCVForUnityExample
 
                 Imgproc.putText(img, "gray", new Point(10, 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(255, 255, 255), 2);
                 Imgproc.putText(colorized, "colorized", new Point(10, 20), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(255, 255, 255), 2);
+
+                net.Dispose();
             }
 
             Imgproc.cvtColor(colorized, colorized, Imgproc.COLOR_BGR2RGB);

@@ -1,12 +1,10 @@
-﻿using UnityEngine;
-using UnityEngine.SceneManagement;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using OpenCVForUnity.ObjdetectModule;
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
+using OpenCVForUnity.ObjdetectModule;
 using OpenCVForUnity.UnityUtils;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace OpenCVForUnityExample
 {
@@ -18,59 +16,73 @@ namespace OpenCVForUnityExample
     public class QRCodeDetectorExample : MonoBehaviour
     {
         // Use this for initialization
-        void Start ()
+        void Start()
         {
-            Run ();
+            Run();
         }
 
-        private void Run ()
+        private void Run()
         {
-            Texture2D imgTexture = Resources.Load ("link_github_ocv") as Texture2D;
+            Texture2D imgTexture = Resources.Load("link_github_ocv") as Texture2D;
 
-            Mat imgMat = new Mat (imgTexture.height, imgTexture.width, CvType.CV_8UC4);
+            Mat imgMat = new Mat(imgTexture.height, imgTexture.width, CvType.CV_8UC4);
 
-            Utils.texture2DToMat (imgTexture, imgMat);
-            Debug.Log ("imgMat.ToString() " + imgMat.ToString ());
+            Utils.texture2DToMat(imgTexture, imgMat);
+            Debug.Log("imgMat.ToString() " + imgMat.ToString());
 
 
-            Mat grayMat = new Mat ();
-            Imgproc.cvtColor (imgMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
+            Mat grayMat = new Mat();
+            Imgproc.cvtColor(imgMat, grayMat, Imgproc.COLOR_RGBA2GRAY);
 
-            Mat points = new Mat ();
-            Mat straight_qrcode = new Mat ();
 
-            QRCodeDetector detector = new QRCodeDetector ();
+            Mat points = new Mat();
+            List<string> decodedInfo = new List<string>();
+            List<Mat> straightQrcode = new List<Mat>();
 
-            bool result = detector.detect (grayMat, points);
+            QRCodeDetector detector = new QRCodeDetector();
 
-            if (result) {
 
-                string decode_info = detector.decode (grayMat, points, straight_qrcode);
+            bool result = detector.detectAndDecodeMulti(grayMat, decodedInfo, points, straightQrcode);
 
-                Debug.Log (decode_info);
-                Debug.Log (points.dump ());
-                Debug.Log (straight_qrcode.dump ());
+            if (result)
+            {
 
-                // draw QRCode contour.
-                float[] points_arr = new float[8];
-                points.get (0, 0, points_arr);
-                Imgproc.line (imgMat, new Point (points_arr [0], points_arr [1]), new Point (points_arr [2], points_arr [3]), new Scalar (255, 0, 0, 255), 2);
-                Imgproc.line (imgMat, new Point (points_arr [2], points_arr [3]), new Point (points_arr [4], points_arr [5]), new Scalar (255, 0, 0, 255), 2);
-                Imgproc.line (imgMat, new Point (points_arr [4], points_arr [5]), new Point (points_arr [6], points_arr [7]), new Scalar (255, 0, 0, 255), 2);
-                Imgproc.line (imgMat, new Point (points_arr [6], points_arr [7]), new Point (points_arr [0], points_arr [1]), new Scalar (255, 0, 0, 255), 2);
+                //Debug.Log(points.dump());
+                //Debug.Log(points.ToString());
 
-                Imgproc.putText (imgMat, "DECODE INFO: " + decode_info, new Point (5, imgMat.rows () - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar (255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+
+                for (int i = 0; i < points.rows(); i++)
+                {
+                    //Debug.Log(decoded_info[i]);
+                    //Debug.Log(straight_qrcode[i].dump());
+
+                    //// draw QRCode contour.
+                    float[] points_arr = new float[8];
+                    points.get(i, 0, points_arr);
+                    Imgproc.line(imgMat, new Point(points_arr[0], points_arr[1]), new Point(points_arr[2], points_arr[3]), new Scalar(255, 0, 0, 255), 2);
+                    Imgproc.line(imgMat, new Point(points_arr[2], points_arr[3]), new Point(points_arr[4], points_arr[5]), new Scalar(255, 0, 0, 255), 2);
+                    Imgproc.line(imgMat, new Point(points_arr[4], points_arr[5]), new Point(points_arr[6], points_arr[7]), new Scalar(255, 0, 0, 255), 2);
+                    Imgproc.line(imgMat, new Point(points_arr[6], points_arr[7]), new Point(points_arr[0], points_arr[1]), new Scalar(255, 0, 0, 255), 2);
+
+                    if (decodedInfo.Count > i && decodedInfo[i] != null)
+                        Imgproc.putText(imgMat, decodedInfo[i], new Point(points_arr[0], points_arr[1]), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
+                }
+
+            }
+            else
+            {
+                Imgproc.putText(imgMat, "Decoding failed.", new Point(5, imgMat.rows() - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(255, 255, 255, 255), 2, Imgproc.LINE_AA, false);
             }
 
-            Texture2D texture = new Texture2D (imgMat.cols (), imgMat.rows (), TextureFormat.RGBA32, false);
+            Texture2D texture = new Texture2D(imgMat.cols(), imgMat.rows(), TextureFormat.RGBA32, false);
 
-            Utils.matToTexture2D (imgMat, texture);
+            Utils.matToTexture2D(imgMat, texture);
 
-            gameObject.GetComponent<Renderer> ().material.mainTexture = texture;
+            gameObject.GetComponent<Renderer>().material.mainTexture = texture;
         }
 
         // Update is called once per frame
-        void Update ()
+        void Update()
         {
 
         }
@@ -78,7 +90,7 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// Raises the destroy event.
         /// </summary>
-        void OnDestroy ()
+        void OnDestroy()
         {
 
         }
@@ -86,9 +98,9 @@ namespace OpenCVForUnityExample
         /// <summary>
         /// Raises the back button click event.
         /// </summary>
-        public void OnBackButtonClick ()
+        public void OnBackButtonClick()
         {
-            SceneManager.LoadScene ("OpenCVForUnityExample");
+            SceneManager.LoadScene("OpenCVForUnityExample");
         }
     }
 }

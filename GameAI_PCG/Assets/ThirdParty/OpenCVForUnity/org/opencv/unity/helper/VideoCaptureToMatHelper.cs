@@ -1,4 +1,4 @@
-﻿using OpenCVForUnity.CoreModule;
+using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.ImgprocModule;
 using OpenCVForUnity.VideoioModule;
 using System;
@@ -11,7 +11,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
 {
     /// <summary>
     /// VideoCapture to mat helper.
-    /// v 1.0.2
+    /// v 1.0.3
     /// </summary>
     public class VideoCaptureToMatHelper : MonoBehaviour
     {
@@ -29,6 +29,31 @@ namespace OpenCVForUnity.UnityUtils.Helper
                 if (_requestedVideoFilePath != value)
                 {
                     _requestedVideoFilePath = value;
+                    if (hasInitDone)
+                        Initialize();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set the apiPreference. VideoCapture API backends identifier. (Advanced Option)
+        /// See ReadMe.pdf for setup instructions for using CAP_FFMPEG on Windows platforms.
+        /// </summary>
+        [SerializeField, FormerlySerializedAs("apiPreference"), TooltipAttribute("Set the apiPreference. VideoCapture API backends identifier. (Advanced Option)\n" +
+            "0 = CAP_ANY (Auto detect)[default]\n" +
+            "1400 = CAP_MSMF (Microsoft Media Foundation (via videoInput))\n" +
+            "1900 = CAP_FFMPEG (Open and record video file or stream using the FFMPEG library)\n" +
+            "2200 = CAP_OPENCV_MJPEG (Built-in OpenCV MotionJPEG codec)")]
+        protected int _apiPreference = Videoio.CAP_ANY;
+
+        public virtual int apiPreference
+        {
+            get { return _apiPreference; }
+            set
+            {
+                if (_apiPreference != value)
+                {
+                    _apiPreference = value;
                     if (hasInitDone)
                         Initialize();
                 }
@@ -398,7 +423,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
                     }
 
                     videoCapture = new VideoCapture();
-                    videoCapture.open(fullPath);
+                    videoCapture.open(fullPath, apiPreference);
 
                     if (!videoCapture.isOpened())
                     {

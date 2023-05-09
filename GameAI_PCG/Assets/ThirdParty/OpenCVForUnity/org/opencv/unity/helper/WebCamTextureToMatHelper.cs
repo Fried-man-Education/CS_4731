@@ -1,4 +1,4 @@
-﻿#if !OPENCV_DONT_USE_WEBCAMTEXTURE_API
+#if !OPENCV_DONT_USE_WEBCAMTEXTURE_API
 #if !(PLATFORM_LUMIN && !UNITY_EDITOR)
 
 using OpenCVForUnity.CoreModule;
@@ -13,8 +13,10 @@ using UnityEngine.Serialization;
 namespace OpenCVForUnity.UnityUtils.Helper
 {
     /// <summary>
-    /// WebcamTexture to mat helper.
-    /// v 1.1.4
+    /// WebCamTexture to mat helper.
+    /// v 1.1.5
+    /// 
+    /// By setting outputColorFormat to RGBA, processing that does not include extra color conversion is performed.
     /// </summary>
     public class WebCamTextureToMatHelper : MonoBehaviour
     {
@@ -405,7 +407,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
 
         protected virtual IEnumerator OnApplicationFocus(bool hasFocus)
         {
-#if (UNITY_IOS && UNITY_2018_1_OR_NEWER) || (UNITY_ANDROID && UNITY_2018_3_OR_NEWER)
+#if ((UNITY_IOS || UNITY_WEBGL) && UNITY_2018_1_OR_NEWER) || (UNITY_ANDROID && UNITY_2018_3_OR_NEWER)
             yield return null;
 
             if (isUserRequestingPermission && hasFocus)
@@ -548,7 +550,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
 
             isInitWaiting = true;
 
-#if (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+#if (UNITY_IOS || UNITY_WEBGL || UNITY_ANDROID) && !UNITY_EDITOR
             // Checks camera permission state.
             IEnumerator coroutine = hasUserAuthorizedCameraPermission();
             yield return coroutine;
@@ -764,7 +766,7 @@ namespace OpenCVForUnity.UnityUtils.Helper
         /// </summary>
         protected virtual IEnumerator hasUserAuthorizedCameraPermission()
         {
-#if UNITY_IOS && UNITY_2018_1_OR_NEWER
+#if (UNITY_IOS || UNITY_WEBGL) && UNITY_2018_1_OR_NEWER
             UserAuthorization mode = UserAuthorization.WebCam;
             if (!Application.HasUserAuthorization(mode))
             {
@@ -783,11 +785,11 @@ namespace OpenCVForUnity.UnityUtils.Helper
 #endif
         }
 
-#if (UNITY_IOS && UNITY_2018_1_OR_NEWER) || (UNITY_ANDROID && UNITY_2018_3_OR_NEWER)
+#if ((UNITY_IOS || UNITY_WEBGL) && UNITY_2018_1_OR_NEWER) || (UNITY_ANDROID && UNITY_2018_3_OR_NEWER)
         protected bool isUserRequestingPermission;
 #endif
 
-#if UNITY_IOS && UNITY_2018_1_OR_NEWER
+#if (UNITY_IOS || UNITY_WEBGL) && UNITY_2018_1_OR_NEWER
         protected virtual IEnumerator RequestUserAuthorization(UserAuthorization mode)
         {
             isUserRequestingPermission = true;
