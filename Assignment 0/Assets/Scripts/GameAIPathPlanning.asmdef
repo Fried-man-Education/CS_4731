@@ -1,0 +1,15 @@
+{
+    "name": "GameAIPathPlanning",
+    "references": [
+        "GUID:fb16f80fb32c44dd3b51e9d460f1e51f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
