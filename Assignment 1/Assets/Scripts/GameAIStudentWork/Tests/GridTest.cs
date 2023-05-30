@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -154,7 +155,150 @@ namespace Tests
 
 
         // TODO I bet there is a lot more you want to write tests for!
+        [TestCase(0, 0, TraverseDirection.Up, true)]
+        [TestCase(0, 0, TraverseDirection.Down, false)]
+        [TestCase(0, 0, TraverseDirection.Left, false)]
+        [TestCase(0, 0, TraverseDirection.UpLeft, false)]
+        [TestCase(0, 0, TraverseDirection.DownLeft, false)]
+        [TestCase(1, 3, TraverseDirection.DownLeft, true)]
+        [TestCase(1, 3, TraverseDirection.Left, true)]
+        [TestCase(1, 3, TraverseDirection.UpLeft, false)]
+        [TestCase(1, 3, TraverseDirection.Up, false)]
+        [TestCase(1, 3, TraverseDirection.UpRight, false)]
+        [TestCase(1, 3, TraverseDirection.Right, true)]
+        [TestCase(1, 3, TraverseDirection.Down, false)]
+        [TestCase(1, 3, TraverseDirection.DownRight, false)]
+        [TestCase(1, 1, TraverseDirection.Left, false)]
+        [TestCase(6, 1, TraverseDirection.Left, false)]
+        [TestCase(6, 1, TraverseDirection.DownLeft, false)]
+        [TestCase(6, 1, TraverseDirection.Down, true)]
+        [TestCase(6, 1, TraverseDirection.DownRight, true)]
+        [TestCase(6, 1, TraverseDirection.Right, true)]
+        [TestCase(6, 1, TraverseDirection.UpRight, true)]
+        [TestCase(6, 1, TraverseDirection.Up, true)]
+        [TestCase(6, 1, TraverseDirection.UpLeft, true)]
+        [TestCase(8, 3, TraverseDirection.Left, true)]
+        [TestCase(8, 3, TraverseDirection.DownLeft, true)]
+        [TestCase(8, 3, TraverseDirection.Down, true)]
+        [TestCase(8, 3, TraverseDirection.DownRight, false)]
+        [TestCase(8, 3, TraverseDirection.Right, false)]
+        [TestCase(8, 3, TraverseDirection.UpRight, false)]
+        [TestCase(8, 3, TraverseDirection.Up, false)]
+        [TestCase(8, 3, TraverseDirection.UpLeft, false)]
+        public void TestIsTraversable(int x, int y, TraverseDirection dir, bool expected)
+        {
+            bool[,] grid;
+            List<Polygon> obstPolys = new List<Polygon>();
+            Polygon poly = new Polygon();
+            poly.SetPoints(new Vector2[] {
+                new(-1.5f, -0.5f),
+                new(-0.4f, -1f),
+                new(1f, -0.5f),
+                new(-1.5f, 0.5f),
+            });
+            obstPolys.Add(poly);
+            CreateGrid.Create(new Vector2(-2f, -1f), 4.5f, 2f, 0.5f, obstPolys, out grid);
+            var actual = CreateGrid.IsTraversable(grid, x, y, dir);
+            Assert.That(actual, Is.EqualTo(expected));
+        }
+        
+        public static object[] ObstaclesCases =
+        {
+            new TestCaseData(0f, 0f, 5f, 5f, 1f, new Vector2[] { new Vector2(0.25f, 0f), new Vector2(0.75f, 0f), new Vector2(0.75f, 4f), new Vector2(0.25f, 4f) }, new bool[,] { { false, false, false, false, true }, { true, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true } }).SetName("Vertical line thinner than grid cell"),
+            new TestCaseData(0f, 0f, 5f, 5f, 1f, new Vector2[] { new Vector2(1f, 0f), new Vector2(2f, 0f), new Vector2(2f, 1f), new Vector2(1f, 1f) }, new bool[,] { { true, true, true, true, true }, { false, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true } }).SetName("Obstacle size and placement same as grid cell"),
+            new TestCaseData(0f, 0f, 5f, 5f, 1f, new Vector2[] { new Vector2(0f, 0f), new Vector2(5f, 0f), new Vector2(5f, 5f), new Vector2(0f, 5f) }, new bool[,] { { false, false, false, false, false }, { false, false, false, false, false }, { false, false, false, false, false }, { false, false, false, false, false }, { false, false, false, false, false } }).SetName("Obstacle covers entire grid"),
+            new TestCaseData(0f, 0f, 5f, 5f, 1f, new Vector2[] { new Vector2(2.25f, 1f), new Vector2(2.5f, 2.5f), new Vector2(2.25f, 4.01f) }, new bool[,] { { true, true, true, true, true }, { true, true, true, true, true }, { true, false, false, false, false }, { true, true, true, true, true }, { true, true, true, true, true } }).SetName("Triangle with one barely intersecting point and one barely overlapping point"),
+            new TestCaseData(0f, 0f, 5f, 5f, 1f, new Vector2[] { new Vector2(0.25f, 0.25f), new Vector2(0.5f, 0.25f), new Vector2(0.5f, 0.5f), new Vector2(0.25f, 0.5f) }, new bool[,] { { false, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true }, { true, true, true, true, true } }).SetName("Obstacle contained within a single grid cell"),
+            new TestCaseData(0f, 0f, 5f, 5f, 1f, new Vector2[] { new Vector2(2f, 2.5f), new Vector2(3.5f, 3.5f), new Vector2(4.5f, 2.5f), new Vector2(4f, 3.5f), new Vector2(4.75f, 4f), new Vector2(4f, 4.5f), new Vector2(3.5f, 4.75f), new Vector2(3f, 4.5f), new Vector2(1.5f, 4f), new Vector2(2f, 3f) }, new bool[,] { { true, true, true, true, true }, { true, true, true, false, false }, { true, true, false, false, false }, { true, true, true, false, false }, { true, true, false, false, false } }).SetName("The ugliest star you\'ve ever seen")
+        };
 
+        [TestCaseSource(nameof(ObstaclesCases))]
+        public void TestMoreObstacles(float originx, float originy,
+            float width, float height, float cellSize, Vector2[] obstaclePoints, bool[,] correctGrid)
+        {
 
+            var origin = new Vector2(originx, originy);
+
+            bool[,] grid;
+
+            List<Polygon> obstPolys = new List<Polygon>();
+
+            Polygon poly = new Polygon();
+
+            Vector2[] pts = obstaclePoints;
+
+            Assert.That(CG.Ccw(pts), Is.True, "SETUP FAILURE: polygon verts not listed CCW");
+
+            poly.SetPoints(pts);
+            obstPolys.Add(poly);
+            CreateGrid.Create(origin, width, height, cellSize, obstPolys, out grid);
+
+            Debug.Log("Obstacle is at: " + $"[{string.Join(",", obstaclePoints)}]");
+            PrintGrid(grid, "Returned");
+            PrintGrid(correctGrid, "Correct");
+
+            BasicGridCheck(grid, width, height, cellSize);
+
+            Assert.That(grid, Is.EqualTo(correctGrid), $"Grids are not equal");
+
+        }
+
+        public void PrintGrid(bool[,] grid, string gridType)
+        {
+            StringBuilder sb = new StringBuilder();
+            for (int y = grid.GetLength(1) - 1; y >= 0; y--)
+            {
+                for (int x = 0; x < grid.GetLength(0); x++)
+                {
+                    sb.Append(grid[x, y]);
+                    sb.Append(' ');
+                }
+                sb.AppendLine();
+            }
+            Debug.Log(gridType + " values are as follows: \n" + sb.ToString());
+        }
+
+        [Test]
+        public void TestTraversableAllDirections()
+        {
+            bool[,] grid = new bool[3, 3];
+
+            grid[0, 0] = true;
+            grid[0, 1] = false;
+            grid[0, 2] = true;
+            grid[1, 0] = false;
+            grid[1, 1] = true;
+            grid[1, 2] = true;
+            grid[2, 0] = false;
+            grid[2, 1] = true;
+            grid[2, 2] = false;
+
+            // Test all possible directions
+            
+            var downRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.Down);
+            Assert.That(downRes, Is.False, $"Traverability in dir: {TraverseDirection.Down} expected to be false but wasn't");
+
+            var upRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.Up);
+            Assert.That(upRes, Is.True, $"Traverability in dir: {TraverseDirection.Up} expected to be true but wasn't");
+
+            var leftRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.Left);
+            Assert.That(leftRes, Is.False, $"Traverability in dir: {TraverseDirection.Left} expected to be false but wasn't");
+
+            var rightRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.Right);
+            Assert.That(rightRes, Is.True, $"Traverability in dir: {TraverseDirection.Right} expected to be true but wasn't");
+
+            var upLeftRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.UpLeft);
+            Assert.That(upLeftRes, Is.True, $"Traverability in dir: {TraverseDirection.UpLeft} expected to be true but wasn't");
+
+            var upRightRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.UpRight);
+            Assert.That(upRightRes, Is.False, $"Traverability in dir: {TraverseDirection.UpRight} expected to be false but wasn't");
+
+            var downLeftRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.DownLeft);
+            Assert.That(downLeftRes, Is.True, $"Traverability in dir: {TraverseDirection.DownLeft} expected to be true but wasn't");
+
+            var downRightRes = CreateGrid.IsTraversable(grid, 1, 1, TraverseDirection.DownRight);
+            Assert.That(downRightRes, Is.False, $"Traverability in dir: {TraverseDirection.DownRight} expected to be false but wasn't");
+
+        }
     }
 }

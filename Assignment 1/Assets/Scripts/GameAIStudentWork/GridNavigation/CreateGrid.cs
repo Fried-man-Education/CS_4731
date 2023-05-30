@@ -1,5 +1,4 @@
-﻿// compile_check
-// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
+﻿// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
 // that your code compiles and the autograder can access your public methods.
 
 using System.Collections;
@@ -12,7 +11,7 @@ namespace GameAICourse {
     {
 
         // Please change this string to your name
-        public const string StudentAuthorName = "George P. Burdell ← Not your name, change it!";
+        public const string StudentAuthorName = "Andrew Friedman";
 
 
         // Helper method provided to help you implement this file. Leave as is.
@@ -51,13 +50,8 @@ namespace GameAICourse {
         // This method should return true if the point p is on one of the edges of the cell.
         // This is more efficient than PointInsidePolygon() for an equivalent dimension poly
         // Preconditions: minCellBounds <= maxCellBounds, per dimension
-        static bool IsPointInsideAxisAlignedBoundingBox(Vector2Int minCellBounds, Vector2Int maxCellBounds, Vector2Int p)
-        {
-            //TODO IMPLEMENT
-
-            // placeholder logic to be replaced by the student
-            return true;
-        }
+        static bool IsPointInsideAxisAlignedBoundingBox(Vector2Int minCellBounds, Vector2Int maxCellBounds, Vector2Int p) => 
+            minCellBounds.x <= p.x && p.x <= maxCellBounds.x && minCellBounds.y <= p.y && p.y <= maxCellBounds.y;
 
 
 
@@ -66,23 +60,14 @@ namespace GameAICourse {
         // The ranges are considered to overlap if one or more values is within the range of both.
         // Returns true if overlap, false otherwise.
         // Preconditions: min1 <= max1 AND min2 <= max2
-        static bool IsRangeOverlapping(int min1, int max1, int min2, int max2)
-        {
-            // TODO IMPLEMENT
-            return true;
-        }
+        static bool IsRangeOverlapping(int min1, int max1, int min2, int max2) => 
+            min1 <= max2 && min2 <= max1;
 
         // IsAxisAlignedBouningBoxOverlapping(): Determines if the AABBs defined by min1,max1 and min2,max2 overlap or touch
         // Returns true if overlap, false otherwise.
         // Preconditions: min1 <= max1, per dimension. min2 <= max2 per dimension
-        static bool IsAxisAlignedBoundingBoxOverlapping(Vector2Int min1, Vector2Int max1, Vector2Int min2, Vector2Int max2)
-        {
-
-            // TODO IMPLEMENT
-            // HINT: Call IsRangeOverlapping()
-
-            return true;
-        }
+        static bool IsAxisAlignedBoundingBoxOverlapping(Vector2Int min1, Vector2Int max1, Vector2Int min2, Vector2Int max2) => 
+            IsRangeOverlapping(min1.x, max1.x, min2.x, max2.x) && IsRangeOverlapping(min1.y, max1.y, min2.y, max2.y);
 
 
 
@@ -96,11 +81,64 @@ namespace GameAICourse {
         // Note: public methods are autograded
         public static bool IsTraversable(bool[,] grid, int x, int y, TraverseDirection dir)
         {
+            if (
+                grid == null || 
+                grid.Rank != 2 || 
+                grid.GetLength(0) == 0 || 
+                grid.GetLength(1) == 0 ||
+                x < 0 || 
+                x >= grid.GetLength(0) || 
+                y < 0 || 
+                y >= grid.GetLength(1) ||
+                grid[x, y] == false
+            )
+                return false;
 
-            // TODO IMPLEMENT
+            int maxGridWidthIndex = grid.GetLength(0) - 1; int maxGridHeightIndex = grid.GetLength(1) - 1;
+            switch (dir)
+            {
+                case TraverseDirection.Up:
+                    if (y + 1 <= maxGridHeightIndex) 
+                        return grid[x, y + 1];
+                    break;
 
-            //placeholder logic to be replaced by the student
-            return true;
+                case TraverseDirection.Down:
+                    if (y - 1 >= 0) 
+                        return grid[x, y - 1];
+                    break;
+
+                case TraverseDirection.UpLeft:
+                    if (x - 1 >= 0 && y + 1 <= maxGridHeightIndex) 
+                        return grid[x - 1, y + 1];
+                    break;
+
+                case TraverseDirection.UpRight:
+                    if (x + 1 <= maxGridWidthIndex && y + 1 <= maxGridHeightIndex)
+                        return grid[x + 1, y + 1];
+                    break;
+
+                case TraverseDirection.DownLeft:
+                    if (x - 1 >= 0 && y - 1 >= 0)
+                        return grid[x - 1, y - 1];
+                    break;
+
+                case TraverseDirection.DownRight:
+                    if (x + 1 <= maxGridWidthIndex && y - 1 >= 0)
+                        return grid[x + 1, y - 1];
+                    break;
+
+                case TraverseDirection.Left:
+                    if (x - 1 >= 0) 
+                        return grid[x - 1, y];
+                    break;
+
+                case TraverseDirection.Right:
+                    if (x + 1 <= maxGridWidthIndex) 
+                        return grid[x + 1, y];
+                    break;
+            }
+
+            return false;
         }
 
 
@@ -123,14 +161,71 @@ namespace GameAICourse {
             // Carefully consider all possible geometry interactions
 
             // also ignoring the world boundary defined by canvasOrigin and canvasWidth and canvasHeight
+            static bool[,] InitializeGrid(int columns, int rows)
+            {
+                bool[,] grid = new bool[columns, rows];
 
+                if (columns <= 0 || rows <= 0) return grid;
 
-            grid = new bool[1, 1];
-            grid[0, 0] = true;
+                int currentCell = 0;
+                while (currentCell < columns * rows)
+                    grid[currentCell % columns, currentCell++ / columns] = true;
 
+                return grid;
+            }
 
+            static bool IsCellTraversable(List<Polygon> obstacles, float cellWidth, int row, int column, Vector2 canvasOrigin)
+            {
+                float offsetY = cellWidth * column + canvasOrigin[0], offsetX = cellWidth * row + canvasOrigin[1];
+
+                Vector2Int[] corners = new Vector2Int[]
+                {
+                    new Vector2Int(Convert(offsetY) + 1, Convert(offsetX) + 1),
+                    new Vector2Int(Convert(offsetY) + 1, Convert(cellWidth + offsetX) - 1),
+                    new Vector2Int(Convert(cellWidth + offsetY) - 1, Convert(offsetX) + 1),
+                    new Vector2Int(Convert(cellWidth + offsetY) - 1, Convert(cellWidth + offsetX) - 1)
+                };
+
+                foreach (Polygon obstacle in obstacles) 
+                {
+                    Vector2[] points = obstacle.getPoints();
+                    Vector2Int[] obsCorners = new Vector2Int[points.Length];
+
+                    for (int i = 0; i < points.Length; i++)
+                    {
+                        obsCorners[i] = Convert(points[i]);
+
+                        if (IsPointInsideAxisAlignedBoundingBox(corners[0], corners[3], obsCorners[i]))
+                            return false;
+                    }
+
+                    foreach (Vector2Int corner in corners)
+                        if (IsPointInsidePolygon(obsCorners, corner))
+                            return false;
+
+                    for (int i = 0; i < obsCorners.Length; i++)
+                        for (int j = 0; j < 4; j++)
+                            if (Intersects(corners[j], corners[(j + 1) % 4], obsCorners[i], obsCorners[(i + 1) % obsCorners.Length]))
+                                return false;
+                }
+
+                return true;
+            }
+
+            int columns = Mathf.FloorToInt(canvasWidth / cellWidth), rows = Mathf.FloorToInt(canvasHeight / cellWidth);
+            grid = InitializeGrid(columns, rows);
+            
+            for (int i = 0; i < rows; i++) {
+                for (int j = 0; j < columns; j++) {
+                    grid[j, i] = IsCellTraversable(
+                        obstacles, 
+                        cellWidth, 
+                        i, 
+                        j, 
+                        canvasOrigin
+                    );
+                }
+            }
         }
-
     }
-
 }
