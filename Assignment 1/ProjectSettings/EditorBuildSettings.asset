@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/GridNavigation.unity
+    guid: 31d9bdaa5617f6c44bb9dd8c8bb5b86c
+  - enabled: 1
+    path: Assets/Scenes/PathNetwork.unity
+    guid: fc30dbf5b4ba842f282f7a7edadb8069
+  - enabled: 1
+    path: Assets/Scenes/Navmesh.unity
+    guid: b68b891a741fc40209ddd97fb245ab8a
+  m_configObjects: {}
