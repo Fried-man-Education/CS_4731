@@ -1,5 +1,4 @@
-﻿// compile_check
-// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
+﻿// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
 // that your code compiles and the autograder can access your public methods.
 
 using System;
@@ -13,7 +12,7 @@ namespace GameAICourse
     public class CreatePathNetwork
     {
 
-        public const string StudentAuthorName = "George P. Burdell ← Not your name, change it!";
+        public const string StudentAuthorName = "Andrew Friedman";
 
 
 
@@ -115,18 +114,85 @@ namespace GameAICourse
             List<Polygon> obstacles, float agentRadius, float minPoVDist, float maxPoVDist, ref List<Vector2> pathNodes, out List<List<int>> pathEdges,
             PathNetworkMode pathNetworkMode)
         {
+            var totalPathNodes = pathNodes.Count;
+            pathEdges = new List<List<int>>();
+            Vector2Int canvasSize = ConvertToInt(new Vector2(canvasWidth, canvasHeight)),
+                canvasStartPoint = ConvertToInt(canvasOrigin),
+                canvasEndPoint = canvasStartPoint + canvasSize;
+            int agentRadiusAsInt = ConvertToInt(agentRadius);
+            var validPathNodeIndexes = new List<int>();
 
-            //STUDENT CODE HERE
-
-            pathEdges = new List<List<int>>(pathNodes.Count);
-
-            for (int i = 0; i < pathNodes.Count; ++i)
+            for (int i = 0; i < totalPathNodes; i++)
             {
+                var pathNodeAsInt = ConvertToInt(pathNodes[i]);
+                var nodeRadius = new Vector2Int(agentRadiusAsInt, agentRadiusAsInt);
+                var minBoundary = pathNodeAsInt - nodeRadius;
+                var maxBoundary = pathNodeAsInt + nodeRadius;
+
+                if (!(minBoundary.x < canvasStartPoint.x || minBoundary.y < canvasStartPoint.y || maxBoundary.x > canvasEndPoint.x || maxBoundary.y > canvasEndPoint.y))
+                {
+                    Vector2Int[] nodeBoundaries = { minBoundary, new Vector2Int(minBoundary.x, maxBoundary.y), maxBoundary, new Vector2Int(maxBoundary.x, minBoundary.y) };
+                    var isNodeInsideObstacle = false;
+
+                    for (int obstacleIndex = 0; obstacleIndex < obstacles.Count; obstacleIndex++)
+                    {
+                        Vector2Int[] elements = obstacles[obstacleIndex].getIntegerPoints();
+                        for (int nodeBoundaryIndex = 0; nodeBoundaryIndex < nodeBoundaries.Length; nodeBoundaryIndex++)
+                        {
+                            if (Array.Exists(elements, point => IsPointInPolygon(elements, nodeBoundaries[nodeBoundaryIndex])))
+                            {
+                                isNodeInsideObstacle = true;
+                                break;
+                            }
+                        }
+
+                        if (isNodeInsideObstacle) break;
+                    }
+
+                    if (!isNodeInsideObstacle) validPathNodeIndexes.Add(i);
+                }
+
                 pathEdges.Add(new List<int>());
             }
 
+            int validNodeCount = validPathNodeIndexes.Count;
+            for (int nodeCounter = 0; nodeCounter < validNodeCount - 1; nodeCounter++)
+            {
+                for (int adjacencyCounter = nodeCounter + 1; adjacencyCounter < validNodeCount; adjacencyCounter++)
+                {
+                    Vector2Int
+                        originNode = ConvertToInt(pathNodes[validPathNodeIndexes[nodeCounter]]),
+                        destinationNode = ConvertToInt(pathNodes[validPathNodeIndexes[adjacencyCounter]]);
+                    var doesEdgeIntersect = false;
 
-            // END STUDENT CODE
+                    for (int obstacleCounter = 0; obstacleCounter < obstacles.Count; obstacleCounter++)
+                    {
+                        Vector2Int[] obstacleVertices = obstacles[obstacleCounter].getIntegerPoints();
+                        for (int obstacleVertexIndex = 0; obstacleVertexIndex < obstacleVertices.Length; obstacleVertexIndex++)
+                        {
+                            if (DistanceToLineSegment(obstacleVertices[obstacleVertexIndex], originNode, destinationNode) < agentRadiusAsInt)
+                            {
+                                doesEdgeIntersect = true;
+                                break;
+                            }
+
+                            if (obstacleVertexIndex > 0 && Intersects(obstacleVertices[obstacleVertexIndex-1], obstacleVertices[obstacleVertexIndex], originNode, destinationNode))
+                            {
+                                doesEdgeIntersect = true;
+                                break;
+                            }
+                        }
+
+                        if (doesEdgeIntersect) break;
+                    }
+
+                    if (!doesEdgeIntersect)
+                    {
+                        pathEdges[validPathNodeIndexes[nodeCounter]].Add(validPathNodeIndexes[adjacencyCounter]);
+                        pathEdges[validPathNodeIndexes[adjacencyCounter]].Add(validPathNodeIndexes[nodeCounter]);
+                    }
+                }
+            }
 
         }
 
