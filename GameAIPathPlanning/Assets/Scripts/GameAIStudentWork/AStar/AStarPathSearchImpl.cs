@@ -16,7 +16,7 @@ namespace GameAICourse
     {
 
         // Please change this string to your name
-        public const string StudentAuthorName = "George P. Burdell ← Not your name, change it!";
+        public const string StudentAuthorName = "Andrew Friedman";
 
 
         // Null Heuristic for Dijkstra
@@ -34,43 +34,19 @@ namespace GameAICourse
 
 
         // Heuristic distance fuction implemented with manhattan distance
-        public static float HeuristicManhattan(Vector2 nodeA, Vector2 nodeB)
-        {
-            //STUDENT CODE HERE
-
-            // The following code is just a placeholder so that the method has a valid return
-            // You will replace it with the correct implementation
-            return 0f;
-
-            //END CODE 
-        }
+        public static float HeuristicManhattan(Vector2 nodeA, Vector2 nodeB) =>
+            Mathf.Abs(nodeA.x - nodeB.x) + Mathf.Abs(nodeA.y - nodeB.y);
 
         // Heuristic distance function implemented with Euclidean distance
-        public static float HeuristicEuclidean(Vector2 nodeA, Vector2 nodeB)
-        {
-            //STUDENT CODE HERE
-
-            // The following code is just a placeholder so that the method has a valid return
-            // You will replace it with the correct implementation
-            return 0f;
-
-            //END CODE 
-        }
+        public static float HeuristicEuclidean(Vector2 nodeA, Vector2 nodeB) =>
+            Mathf.Abs(Vector2.Distance(nodeA, nodeB));
 
 
         // Cost is only ever called on adjacent nodes. So we will always use Euclidean distance.
         // We could use Manhattan dist for 4-way connected grids and avoid sqrroot and mults.
         // But we will avoid that for simplicity.
-        public static float Cost(Vector2 nodeA, Vector2 nodeB)
-        {
-            //STUDENT CODE HERE
-
-            // The following code is just a placeholder so that the method has a valid return
-            // You will replace it with the correct implementation
-            return 0f;
-
-            //END STUDENT CODE
-        }
+        public static float Cost(Vector2 nodeA, Vector2 nodeB) =>
+            Mathf.Abs(Vector2.Distance(nodeA, nodeB));
 
 
 
