@@ -1,5 +1,4 @@
-﻿// compile_check
-// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
+﻿// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
 // that your code compiles and the autograder can access your public methods.
 
 using System.Collections;
@@ -76,24 +75,98 @@ namespace GameAICourse
                 return PathSearchResultType.InitializationError;
 
 
-            // STUDENT CODE HERE
+            // STUDENT CODE HERE - incremental search taken from BasicPathSearchImpl
 
-            // The following code is just a placeholder so that the method has a valid return
-            // You will replace it with the correct implementation
+            pathResult = PathSearchResultType.InProgress;
 
-            pathResult = PathSearchResultType.Complete;
+            if (doInitialization) {
+                currentNodeIndex = startNodeIndex;
+                searchNodeRecords = new Dictionary<int, PathSearchNodeRecord>();
+                var startNodeRecord = new PathSearchNodeRecord(currentNodeIndex);
+                searchNodeRecords.Add(startNodeRecord.NodeIndex, startNodeRecord);
+                openNodes = new SimplePriorityQueue<int, float>();
+                openNodes.Enqueue(startNodeRecord.NodeIndex, 0f);
+                closedNodes = new HashSet<int>();
+                returnPath = new List<int>();
+            }
 
-            searchNodeRecords = new Dictionary<int, PathSearchNodeRecord>();
-            openNodes = new SimplePriorityQueue<int, float>();
-            closedNodes = new HashSet<int>();
+            for (int visitedNodes = 0; visitedNodes < maxNumNodesToExplore && openNodes.Count > 0; visitedNodes++) {
+                var activeNode = searchNodeRecords[openNodes.First];
+                currentNodeIndex = activeNode.NodeIndex;
 
-            returnPath = new List<int>();
+                if (currentNodeIndex == goalNodeIndex) break;
 
-            returnPath.Add(startNodeIndex);
+                PathSearchNodeRecord adjacentNode = null;
+                var adjacentEdges = getAdjacencies(currentNodeIndex);
+
+                foreach (var adjacentIndex in adjacentEdges) {
+                    var pathCost = activeNode.CostSoFar +
+                        G(getNode(currentNodeIndex), getNode(adjacentIndex));
+                    float heuristic = 0f;
+
+                    if (closedNodes.Contains(adjacentIndex)) {
+                        adjacentNode = searchNodeRecords[adjacentIndex];
+                        if (adjacentNode.CostSoFar <= pathCost) continue;
+                        closedNodes.Remove(adjacentIndex);
+                        heuristic = adjacentNode.EstimatedTotalCost - adjacentNode.CostSoFar;
+                    } else if (openNodes.Contains(adjacentIndex)) {
+                        adjacentNode = searchNodeRecords[adjacentIndex];
+                        if (adjacentNode.CostSoFar <= pathCost) continue;
+                        heuristic = adjacentNode.EstimatedTotalCost - adjacentNode.CostSoFar;
+                    } else {
+                        adjacentNode = new PathSearchNodeRecord(adjacentIndex);
+                        heuristic = H(getNode(currentNodeIndex), getNode(adjacentIndex));
+                    }
+
+                    adjacentNode.FromNodeIndex = currentNodeIndex;
+                    adjacentNode.CostSoFar = pathCost;
+                    adjacentNode.EstimatedTotalCost = pathCost + heuristic;
+                    searchNodeRecords[adjacentIndex] = adjacentNode;
+
+                    if (!openNodes.Contains(adjacentIndex))
+                        openNodes.Enqueue(adjacentIndex, heuristic);
+                }
+
+                openNodes.Remove(currentNodeIndex);
+                closedNodes.Add(currentNodeIndex);
+            }
+
+
+            if (openNodes.Count > 0 || currentNodeIndex == goalNodeIndex) {
+                pathResult = currentNodeIndex == goalNodeIndex 
+                    ? PathSearchResultType.Complete 
+                    : PathSearchResultType.InProgress;
+            }
+            else {
+                pathResult = PathSearchResultType.Partial;
+                int nearestNodeId = -1;
+                float closestDistance = float.MaxValue;
+
+                foreach (int nodeId in closedNodes) {
+                    float currentDistance = Vector2.Distance(getNode(searchNodeRecords[nodeId].NodeIndex), getNode(goalNodeIndex));
+
+                    if (currentDistance < closestDistance) {
+                        nearestNodeId = nodeId;
+                        closestDistance = currentDistance;
+                    }
+                }
+                
+                currentNodeIndex = nearestNodeId >= 0 
+                    ? nearestNodeId 
+                    : currentNodeIndex;
+            }
+
+            if (pathResult != PathSearchResultType.InProgress) {
+                Stack<int> tempPath = new Stack<int>();
+                for (int currentNode = currentNodeIndex; currentNode != startNodeIndex; currentNode = searchNodeRecords[currentNode].FromNodeIndex)
+                    tempPath.Push(currentNode);
+                tempPath.Push(startNodeIndex);
+
+                while (tempPath.Count > 0)
+                    returnPath.Add(tempPath.Pop());
+            }
 
             return pathResult;
-
-            //END STUDENT CODE HERE
         }
 
     }
