@@ -220,173 +220,109 @@ namespace GameAICourse
                         var V2 = obstacleVertices[j];
                         var V3 = obstacleVertices[k];
 
-                        // TODO This inner loop involves tasks for you to implement
+                        if (IsCollinear(V1, V2, V3)) continue;
 
-                        // TODO first lets check if the candidate triangle
-                        // is NOT degenerate. Use IsCollinear(), if
-                        // it is then just call continue to go to the next tri
+                        bool obstacleEdge1 = IsLineSegmentInPolygons(V1, V2, offsetObstPolys);
+                        bool obstacleEdge2 = IsLineSegmentInPolygons(V1, V3, offsetObstPolys);
+                        bool obstacleEdge3 = IsLineSegmentInPolygons(V2, V3, offsetObstPolys);
 
-                        // TODO The next part is potentially a little tricky to understand,
-                        // but easy to implement. Many of the edges of the triangles
-                        // you form will be adjacent to obstacles. 
-                        // The problem is that greedy triangle formation
-                        // can make triangles that are "too big" and block adjacencies
-                        // from forming because navmesh poly adjacency can only occur via a 
-                        // common edge (not coincident edges with different vertices).
-                        // What you need to do is first determine which of the 3 tri edges
-                        // are edges of an obstacle polygon via IsLineSegmentInPolygons().
-                        //
-                        // *** Make sure you use offsetObstPolys any time you need to check
-                        // against obstacles ***
-                        //
-                        // Be sure to store these IsLineSegmentInPolygons() test results in vars 
-                        // since the test is expensive and you need the info later.
-                        // After that, each tri edge that is NOT a line/edge in a poly
-                        // should be checked further to see if there are any obstacle vertices
-                        // that are ON the tri edge and BETWEEN the start and end point.
-                        // You need to test against all obstacleVertices EXCEPT your two triangle
-                        // edge endpoints. You will probably want to write a helper method
-                        // to do this separately with the three candidate triangle edges.
-                        // Use Between() to test each obstacle vertex against the candidate
-                        // triangle edge. This test is important to get right because
-                        // it will stop triangles from forming that block adjacencies from forming.
-                        // If there is a vertex Between(), then "continue" to the next Triangle.
-                        // (Note: that if a tri edge is true for IsLineSegmentInPolygons() that it
-                        // can still be valid. It's just impossible for the Between() test
-                        // to fail. So we skip that step for efficiency.)
+                        bool inBetween = false;
+                        for (int p = 0; p < obstacleVertices.Count - 2; ++p) 
+                        {
+                            Vector2Int vertex = obstacleVertices[p];
+                            if ((!obstacleEdge1 && vertex != V1 && vertex != V2 && Between(V1, V2, vertex)) ||
+                                (!obstacleEdge2 && vertex != V1 && vertex != V3 && Between(V1, V3, vertex)) ||
+                                (!obstacleEdge3 && vertex != V2 && vertex != V3 && Between(V2, V3, vertex)))
+                            {
+                                inBetween = true;
+                                break;
+                            }
+                        }
+                        if (inBetween) continue;
 
+                        Polygon candidateTri = new Polygon();
+                        candidateTri.SetIntegerPoints(new Vector2Int[] { V1, V2, V3 });
+                        if (!IsCCW(candidateTri.getIntegerPoints())) candidateTri.Reverse();
 
-                        // TODO If the tri candidate has gotten this far, now create
-                        // a new Polygon from your tri points. Also, we need to make sure
-                        // all tris are consistent ordering. So call IsCCW(). If it's 
-                        // NOT then call tri.Reverse() to fix it.
+                        if (IntersectsConvexPolygons(candidateTri, origTriangles)) continue;
 
-                        // TODO Next, check if your new tri overlaps the other tris you
-                        // have added so far. You will be adding valid tris to origTriangles.
-                        // So, Use IntersectsConvexPolygons()
-                        // If there is an overlap then call continue. Note that IntersectsConvexPolygons
-                        // will not return true if the triangles are only touching.
+                        bool pointInside = false, equalsPolygon = false;
 
-                        // TODO After that, you want to see if your new tri encloses any
-                        // obstacleVertices. Use IsPointInsidePolygon() to accomplish this.
-                        // If you get a hit, call continue to pass on the tri.
-                        // THEN, you need to check for the possibility that the tri
-                        // is exactly an obstacle polygon (of offsetObstPolys). triPoly.Equals() can be
-                        // used. You can check out the implementation to see that it
-                        // correctly compares any vertex ordering of the same winding.
-                        // NOTE both of these are very rare tests to be successful.
-                        // You can temporarily skip it and come back later if you want.
+                        for (int p = 0; p < obstacleVertices.Count; ++p)
+                        {
+                            if (IsPointInsidePolygon(candidateTri.getIntegerPoints(), obstacleVertices[p]))
+                            {
+                                pointInside = true;
+                                break;
+                            }
+                        }
 
-                        // TODO you now want to see if your new tri edges intersect
-                        // with any of the obstacle edges. However, we can avoid 
-                        // testing a tri edge that is exactly the same as an obstacle edge for
-                        // performance.
-                        // So use your saved results from IsLineSegmentInPolygons() (above) to 
-                        // determine whether you should then call
-                        // InteriorIntersectionLineSegmentWithPolygons(). If this test intersects,
-                        // this skip the tri by calling continue.
+                        for (int p = 0; p < offsetObstPolys.Count; ++p)
+                        {
+                            if (candidateTri.Equals(offsetObstPolys[p]))
+                            {
+                                equalsPolygon = true;
+                                break;
+                            }
+                        }
 
+                        if (pointInside || equalsPolygon) continue;
 
-                        // TODO If the triangle has survived this far, add it to 
-                        // origTriangles.
-                        // Also, add it to the adjPolys dictionary with AddPolygon() (not
-                        // Add()). Internally, AddPolygon() is fairly complicated
-                        // as it tracks shared edges between polys
+                        if ((!obstacleEdge1 && InteriorIntersectionLineSegmentWithPolygons(V1, V2, offsetObstPolys)) ||
+                            (!obstacleEdge2 && InteriorIntersectionLineSegmentWithPolygons(V1, V3, offsetObstPolys)) ||
+                            (!obstacleEdge3 && InteriorIntersectionLineSegmentWithPolygons(V2, V3, offsetObstPolys))) continue;
 
-                    } // for
-                } // for
-            } // for
+                        origTriangles.Add(candidateTri);
+                        adjPolys.AddPolygon(candidateTri);
+                    }
+                }
+            }
 
             // Priming the navmeshPolygons for next steps, and also allow visualization
             navmeshPolygons = new List<Polygon>(origTriangles);
 
-            // TODO If you completed all of the triangle generation above, 
-            // you can just return from the Create() method here to test what you have
-            // accomplished so far. The originalTriangles
-            // will be visualized as translucent yellow polys. Since they are translucent,
-            // any accidental tri overlaps will be a darker shade of yellow. (Useful
-            // for debugging.)
-            // Also, navmeshPolygons is initially just the tris. Those are visualized 
-            // as a blue outline. Note that the blue lineweight is very thin for better 
-            // debugging of small polys
+            AdjacentPolygons updatedAdjPolys = new AdjacentPolygons(adjPolys);
+            
 
+            bool mergesOccur;
+            do {
+                mergesOccur = false;
+                foreach (var edge in adjPolys.Keys) {
+                    var tempPolys = adjPolys[edge];
+                    if (tempPolys.IsBarrier || tempPolys.AB == null || tempPolys.BA == null) 
+                        continue;
 
-            // ********************* PHASE II - Merge Triangles *****************************
-            // 
-            // This phase involves merging triangles into larger convex polygons for the sake
-            // of efficiency. If you like, you can temporarily skip to phase 3 and come back
-            // later.
-            // 
-            // TODO Next up, you need to merge triangles into larger convex polygons where
-            // possible. The greedy strategy you will use involves examining adjacent
-            // tris and seeing if they can be merged into one new convex tri.
-            // 
-            // At the beginning of this process, you should make a copy of adjPolys. Continue
-            // reading below to see why. You can SHALLOW copy like this: 
-            // newAdjPolys = new AdjacentPolygons(adjPolys);
-            // 
-            // Iterate through adjPolys.Keys (type:CommonPolygonEdge) and get the value 
-            // (type:CommonPolygons) for each key. This structure identifies only one polygon
-            // if the edge is a boundary (.IsBarrier), but otherwise .AB and .BA references 
-            // the adjacent polys. You can also get the .CommonEdge (with vertices .A and .B).
-            // (The AB/BA refers to orientation of the common edge AB within each poly 
-            // relative to the winding of the polygon.)
-            // If you have two polygons AB and BA (NOT .IsBarrier), then use 
-            // MergePolygons() to create a new polygon candidate. You need to 
-            // check IsConvex() to decide if it's valid. 
-            // If it is valid, then you need to remove the common edge (and merged polys)
-            // from your adjPolys dictionary and also add the new, larger convex poly. 
-            // And further, you need all the other common edges of the two old merged polys 
-            // to be updated with the merged version.
-            // You actually want to perform the dictionary operations on "newAdjPolys" that
-            // you created above. This is because you never want to add/remove items
-            // to a data structure that you are iterating over. A slightly more efficient
-            // alternative would be to make dedicated add and delete lists and apply them
-            // after enumeration is complete.
-            // The removal of a common edge can be accomplished with newAdjPolys.Remove().
-            // You can add the new merged polygon and update all old poly references with
-            // a single method call:
-            // AddPolygon(Polygon p, Polygon replacePolyA, Polygon replacePolyB)
-            // Similar to the updates to newAdjPolys, you also want to remove old polys
-            // and add the new poly to navMeshPolygons.
-            // When your loop is finished, don't forget to set adjPolys to newAdjPolys.
-            // If you don't do the last step then it won't appear that you have done any merging.
+                    var newPolygon = MergePolygons(tempPolys.AB, tempPolys.BA, edge.A, edge.B);
+                    if (!IsConvex(newPolygon.getIntegerPoints())) 
+                        continue;
 
-            // TODO At this point you can visualize a single pass of the merging (e.g. test your
-            // code). After that, wrap it all in a loop that tries successive passes of
-            // merges, tracking how many successful merges occur. Your loop should terminate
-            // when no merges are successful. Given that we only make a shallow copy,
-            // a single pass through will create convex polygons possibly larger than 4 sides.
-            // It is possibly impossible for more than one pass to be needed.
-            // Be sure you see the blue lines disappear along edges where mergers occured.
+                    updatedAdjPolys.Remove(edge);
+                    updatedAdjPolys.AddPolygon(newPolygon, tempPolys.AB, tempPolys.BA);
+                    navmeshPolygons.Remove(tempPolys.AB);
+                    navmeshPolygons.Remove(tempPolys.BA);
+                    navmeshPolygons.Add(newPolygon);
+                    mergesOccur = true;
+                }
+                adjPolys = updatedAdjPolys;
+            } while (mergesOccur);
 
+            Dictionary<Polygon, int> polygonDict = new Dictionary<Polygon, int>();
+            int counter = 0;
+            foreach (Polygon polygon in navmeshPolygons) {
+                polygonDict[polygon] = counter;
+                pathNodes.Add(polygon.GetCentroid());
+                pathEdges.Add(new List<int>());
+                counter++;
+            }
 
-            // *********************** PHASE 3 - Path Network from NavMesh *********************
+            foreach (var edge in adjPolys.Keys) {
+                var tempPolys = adjPolys[edge];
+                if (tempPolys.IsBarrier) 
+                    continue;
 
-            // The last step is to create a Path Graph from your navMesh
-            // This will involve iterating over the keys of adjPolys so you can get the 
-            // CommonPolygons values.
-            //
-            // Issues you need to address are:
-            // 1.) Calculate midpoints of each portal edge to be your pathNodes
-            // 2.) Implement a method for mapping Polygons each to a list of CommonPolygonEdges,
-            //      and mapping CommonPolygonEdges to path node indexes (ints)
-            //
-            // For 1.), You can add the end points of the edges together and divide by 2.
-            // 2.) is a bit more challenging. I recommend the use of Dictionaries for the mappings.
-            //  You may benefit from a two-pass approach, iterating over the adjPolys.
-
-
-            // ***************************** FINAL **********************************************
-            // Once you have completed everything, you will probably find that the code
-            // is very slow. It can be sped up a good bit by creating hashtables of common calculations.
-            // This is not required though. 
-            //
-            // Also, there are better ways to triangulate that perform better and give
-            // better quality triangles (not long and skinny but closer to equilateral).
-            // However, you don't need to worry about implementing this.
-            // 
-
+                pathEdges[polygonDict[tempPolys.AB]].Add(polygonDict[tempPolys.BA]);
+                pathEdges[polygonDict[tempPolys.BA]].Add(polygonDict[tempPolys.AB]);
+            }
         } // Create()
 
 
