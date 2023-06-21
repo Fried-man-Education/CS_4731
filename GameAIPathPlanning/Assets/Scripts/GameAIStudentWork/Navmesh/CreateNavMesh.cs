@@ -1,5 +1,4 @@
-﻿// compile_check
-// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
+﻿// Remove the line above if you are subitting to GradeScope for a grade. But leave it if you only want to check
 // that your code compiles and the autograder can access your public methods.
 
 using System.Collections;
@@ -14,7 +13,7 @@ namespace GameAICourse
     public class CreateNavMesh
     {
 
-        public static string StudentAuthorName = "George P. Burdell ← Not your name, change it!";
+        public static string StudentAuthorName = "Andrew Friedman";
 
 
 
