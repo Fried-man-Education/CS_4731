@@ -21,18 +21,49 @@ public class GameManager : Singleton<GameManager>
     public float MinThrottle = float.MaxValue;
     public float MaxThrottle = 0f;
 
+    public enum SimulationMode
+    {
+        FPS_60_1X_RealTime,
+        FPS_60_1X_SimTime,
+    };
+
+    [SerializeField]
+    protected SimulationMode simulationMode = SimulationMode.FPS_60_1X_RealTime;
+
+    public static SimulationMode? INTERNAL_overrideSimulationMode = null;
+
     private void Awake()
     {
-        //QualitySettings.vSyncCount = 0;
-        //Application.targetFrameRate = 60;
+
 
     }
 
     // Start is called before the first frame update
     void Start()
     {
-        QualitySettings.vSyncCount = 0;
-        Application.targetFrameRate = 60;
+        //QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = 60;
+
+        if (INTERNAL_overrideSimulationMode != null)
+            simulationMode = (SimulationMode)INTERNAL_overrideSimulationMode;
+
+
+        Debug.Log($"SimulationMode: {simulationMode}");
+
+
+        switch (simulationMode)
+        {
+            case SimulationMode.FPS_60_1X_RealTime:
+                QualitySettings.vSyncCount = 0;
+                Application.targetFrameRate = 60;
+                break;
+            case SimulationMode.FPS_60_1X_SimTime:
+                QualitySettings.vSyncCount = 0;
+                Application.targetFrameRate = -1;
+                Time.captureFramerate = 60;
+                break;
+        }
+
     }
 
     // Update is called once per frame

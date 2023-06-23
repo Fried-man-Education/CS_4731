@@ -17,7 +17,7 @@ namespace Tests
     public class RacingTest
     {
 
-        const int timeScale = 1; // how fast to run the game. Running fast doesn't necessarily
+        const int timeScale = 1; // how fast to run the game relative to frame rate. Running fast doesn't necessarily
                                  // give accurate results.
 
         const int PlayMatchTimeOutMS = int.MaxValue; // don't mess with this; add it to new tests
@@ -26,7 +26,7 @@ namespace Tests
 
         public RacingTest()
         {
-
+           
         }
 
 
@@ -43,9 +43,7 @@ namespace Tests
         {
             Time.timeScale = timeScale;
 
-            Time.fixedDeltaTime = Time.fixedDeltaTime / timeScale;
-
-            Application.targetFrameRate = 60 * timeScale;
+            GameManager.INTERNAL_overrideSimulationMode = GameManager.SimulationMode.FPS_60_1X_SimTime;
 
             var sceneName = "RaceTrackFZ";
 
@@ -72,18 +70,18 @@ namespace Tests
             var extraCreditWeight = 0.05f;
 
             var speedPenalty = Mathf.Lerp(speedScoreWeight, 0f,
-
+  
                 Power(
                     Mathf.InverseLerp(minAllowedSpeed, targetSpeed, gm.KpHLTA)
                     , 0.5f)
-
+ 
                     );
 
 
             var maxAllowedWipeouts = 1;
             var maxPartialPenaltyWipeouts = 10;
 
-
+ 
             var wipeoutPenalty = Mathf.Lerp(wipeoutScoreWeight, 0f,
                     1f - Mathf.InverseLerp(maxAllowedWipeouts, maxPartialPenaltyWipeouts, gm.Wipeouts)
                 );
@@ -91,7 +89,7 @@ namespace Tests
 
             float extraCredit = 0f;
 
-            if (gm.Wipeouts <= 0)
+            if(gm.Wipeouts <= 0)
             {
                 extraCredit = Mathf.Lerp(0f, extraCreditWeight,
 
@@ -108,11 +106,11 @@ namespace Tests
                 Debug.Log($"Extra credit only earned if no wipeouts!");
             }
 
-            var totalScore = (speedScoreWeight - speedPenalty) +
-                (wipeoutScoreWeight - wipeoutPenalty) +
+            var totalScore = (speedScoreWeight - speedPenalty) + 
+                (wipeoutScoreWeight - wipeoutPenalty) + 
                 extraCredit;
 
-            Debug.Log($"Estimated Total Score: {totalScore * 100}%");
+            Debug.Log($"Estimated Total Score: {totalScore*100}%");
 
         }
 

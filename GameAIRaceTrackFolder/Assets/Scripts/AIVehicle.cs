@@ -673,14 +673,39 @@ namespace GameAI
 
                 if (vizInputMarker != null)
                 {
-                    vizInputMarker.localPosition = new Vector3((vizInputCorners[2].x - vizInputCorners[0].x) * 0.5f * Steering / steerAngle, (vizInputCorners[2].y - vizInputCorners[0].y) * 0.5f * Throttle, 0f);
+                    if(!ContainsNaNorInf(Steering) && !ContainsNaNorInf(Throttle))
+                        vizInputMarker.localPosition = new Vector3((vizInputCorners[2].x - vizInputCorners[0].x) * 0.5f * Steering / steerAngle, (vizInputCorners[2].y - vizInputCorners[0].y) * 0.5f * Throttle, 0f);
 
                 }
             }
 
         }
 
+        private bool ContainsNaNorInf(float v)
+        {
+            if (
+                float.IsNaN(v) || float.IsInfinity(v) 
+                )
+            {
+                return true;
+            }
 
+            return false;
+        }
+
+        private bool ContainsNaNorInf(Vector3 v)
+        {
+            if(
+                float.IsNaN(v.x) || float.IsInfinity(v.x) ||
+                float.IsNaN(v.y) || float.IsInfinity(v.y) ||
+                float.IsNaN(v.z) || float.IsInfinity(v.z) 
+                )
+            {
+                return true;
+            }
+
+            return false;
+        }
 
 
         protected int numResets = 0;
@@ -908,7 +933,6 @@ namespace GameAI
 
 #endif
 
-
         static public void DiagnosticPrintFuzzyValueSet<T>(FuzzyValueSet fzset, System.Text.StringBuilder sb) where T : struct, IConvertible
         {
             Type typ = typeof(T);
@@ -950,7 +974,6 @@ namespace GameAI
             }
 
         }
-
 
     }
 }
