@@ -1,0 +1,19 @@
+{
+    "name": "ShootingRange",
+    "rootNamespace": "",
+    "references": [
+        "GUID:fc2e1db29691ee84688b0a5093d6c799",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:bd6a60bf3a11e504d85d914184515930",
+        "GUID:a2a37270f58ff414b98a8b2bbaf89704"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,16 @@
+{
+    "name": "GameAIStudentWork",
+    "rootNamespace": "",
+    "references": [
+        "GUID:bd6a60bf3a11e504d85d914184515930"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
