@@ -1,4 +1,3 @@
-// compile_check
 // Remove the line above if you are submitting to GradeScope for a grade. But leave it if you only want to check
 // that your code compiles and the autograder can access your public methods.
 
@@ -16,7 +15,7 @@ namespace GameAIStudent
     public class ThrowMethods
     {
 
-        public const string StudentName = "George P. Burdell <- Not your name, change it!";
+        public const string StudentName = "Andrew Friedman";
 
 
         // Note: You have to implement the following method with prediction:
@@ -57,46 +56,46 @@ namespace GameAIStudent
             // It only exists to simplify compatibility with the ShootingRange
             out float altT)
         {
-            // TODO implement an accurate throw with prediction. This is just a placeholder
+            projectileSpeed = maxProjectileSpeed * 0.9f;
+            Vector3 vectorProj = new Vector3(projectilePos.x, projectilePos.y, projectilePos.z), 
+                vectorInit = new Vector3(targetInitPos.x, targetInitPos.y, targetInitPos.z),
+                diff = (vectorProj - vectorInit),
+                velTemp = targetConstVel;
 
-            // FYI, if Minion.transform.position is sent via param targetPos,
-            // be aware that this is the midpoint of Minion's capsuleCollider
-            // (Might not be true of other agents in Unity though. Just keep in mind for future game dev)
+            float diffMagazine = diff.magnitude,
+                velMagazine = velTemp.magnitude,
+                projMagazine = projectileSpeed,
+                thetiana = Vector3.Dot(Vector3.Normalize(diff), Vector3.Normalize(velTemp));
 
-            // Only going 2D for simple demo. this is not useful for proper prediction
-            // Basically, avoiding throwing down at enemies since we aren't predicting accurately here.
-            var targetPos2d = new Vector3(targetInitPos.x, 0f, targetInitPos.z);
-            var launchPos2d = new Vector3(projectilePos.x, 0f, projectilePos.z);
-
-            var relVec = (targetPos2d - launchPos2d);
-            interceptT = relVec.magnitude / maxProjectileSpeed;
+            interceptT = diff.magnitude / maxProjectileSpeed;
             altT = -1f;
 
-            // This is a hard-coded approximate sort of of method to figure out a loft angle
-            // This is NOT the right thing to do for your prediction code!
-            // Refer to assignment reqs and ballistic trajectory lecture!
-            var normAngle = Mathf.Lerp(0f, 20f, interceptT * 0.007f);
-            var v = Vector3.Slerp(relVec.normalized, Vector3.up, normAngle);
+            projectileDir = targetConstVel.x == 0 && targetConstVel.y == 0 && targetConstVel.z == 0 ? targetForwardDir : velTemp;
 
-            // Make sure this is normalized! (The direction of your throw)
-            projectileDir = v;
+            float init = Mathf.Pow(projMagazine, 2) - Mathf.Pow(velMagazine, 2),
+                enit = 2f * diffMagazine * velMagazine * thetiana,
+                unit = Mathf.Pow(diffMagazine, 2);
 
-            // You'll probably want to leave this as is. For some prediction methods you can slow your throw down
-            // You don't need to predict the speed of your throw. Only the direction assuming full speed.
-            // Note that Law of Cosines with holdback WILL require adjusting this.
-            projectileSpeed = maxProjectileSpeed;
+            float temp = Mathf.Pow(enit, 2) + 4f * init * unit;
+            if (temp < 0 || 2 * init == 0) return false;
 
-            // TODO return true or false based on whether target can actually be hit
-            // This implementation just thinks, "I guess so?", and returns true.
-            // Implementations that don't exactly solve intercepts will need to test the approximate
-            // solution with maxAllowedErrorDist. If your solution does solve exactly, you will
-            // probably want to add a debug assertion to check your solution against it.
+            if ((-enit + Mathf.Sqrt(temp)) / (2 * init) < 0) {
+                if ((-enit - Mathf.Sqrt(temp)) / (2 * init) < 0) {
+                    return false;
+                } else {
+                    interceptT = (-enit - Mathf.Sqrt(temp)) / (2 * init);
+                }
+            } else {
+                interceptT = (-enit - Mathf.Sqrt(temp)) / (2 * init) < 0 ? (-enit + Mathf.Sqrt(temp)) / (2 * init) : Mathf.Min((-enit + Mathf.Sqrt(temp)) / (2 * init), (-enit - Mathf.Sqrt(temp)) / (2 * init));
+            }
+
+            Vector3 fin = ((vectorInit - vectorProj) / interceptT) + velTemp - (0.5f * projectileGravity * interceptT);
+            if(fin.magnitude > maxProjectileSpeed) return false;
+            projectileSpeed = fin.magnitude;
+            projectileDir = Vector3.Normalize(fin);
+
             return true;
-
         }
-
-
-
     }
 
 }
