@@ -1,4 +1,8 @@
-﻿#if UNITY_EDITOR
+﻿#define USE_OPENCV
+
+
+#if UNITY_EDITOR
+
 
 using System.Collections;
 using System.Collections.Generic;
@@ -6,10 +10,17 @@ using UnityEngine;
 
 using System.Linq;
 
+#if USE_OPENCV
+
 using OpenCVForUnity.CoreModule;
 using OpenCVForUnity.UnityUtils;
 using OpenCVForUnity.UtilsModule;
 
+#else
+
+using AltMatrix;
+
+#endif
 
 [ExecuteInEditMode]
 public partial class PCGTerrain : MonoBehaviour
@@ -94,8 +105,8 @@ public partial class PCGTerrain : MonoBehaviour
 
         // The width and height of the terrain heightmap array. These are used to normalize the i and j values
 
-        int _width = mat.size(0);
-        int _height = mat.size(1);
+        int _width = mat.size(1);
+        int _height = mat.size(0);
 
 
         float width = (float)_width;
@@ -105,9 +116,9 @@ public partial class PCGTerrain : MonoBehaviour
 
         var row = new float[_width];
 
-        for (int _i = 0; _i < _width; ++_i)
+        for (int _j = 0; _j < _height; ++_j)
         {
-            for (int _j = 0; _j < _height; ++_j)
+            for (int _i = 0; _i < _width; ++_i)
             {
                 // The coordinates of the terrain heightmap cast to float
                 float i = (float)_i;
@@ -154,11 +165,11 @@ public partial class PCGTerrain : MonoBehaviour
                 if (doComplement)
                     val = 1.0f - val;
 
-                row[_j] = val;
+                row[_i] = val;
 
             } //for
 
-            mat.put(_i, 0, row);
+            mat.put(_j, 0, row);
 
         } //for
 
@@ -433,48 +444,59 @@ public partial class PCGTerrain : MonoBehaviour
 
                         //float[] hDat = new float[mHeights.total() * mHeights.channels()];
 
-                        mHeights.get(0, 0, hDat);
+
 
                         var lowest = Config.ProcessParentVariables[0];
                         var low = Config.ProcessParentVariables[1];
                         var high = Config.ProcessParentVariables[2];
                         var highest = Config.ProcessParentVariables[3];
 
-
-                        for (int i = 0; i < w; ++i)
+                        System.Func<float, float> mapParent = (float parentVal) =>
                         {
-                            for (int j = 0; j < h; ++j)
+                            if (parentVal >= lowest && parentVal <= low)
+                            {
+                                var denom = low - lowest;
+                                if (denom < Epsilon)
+                                    parentVal = 0f;
+                                else
+                                    parentVal = (parentVal - lowest) / denom;
+                            }
+                            else if (parentVal >= low && parentVal <= high)
+                            {
+                                parentVal = 1f;
+                            }
+                            else if (parentVal >= high && parentVal <= highest)
+                            {
+                                var denom = highest - high;
+                                if (denom < Epsilon)
+                                    parentVal = 0f;
+                                else
+                                    parentVal = 1f - (parentVal - high) / denom;
+                            }
+                            else
+                            {
+                                parentVal = 0f;
+                            }
+
+                            return parentVal;
+                        };
+
+
+#if USE_OPENCV
+
+                        mHeights.get(0, 0, hDat);
+
+                        for (int j = 0; j < h; ++j)
+                        {
+                            for (int i = 0; i < w; ++i)
                             {
                                 //hDat[j * w + i] = Random.Range(0f, 1f);//(i + j)/(w*h);
 
                                 // stay 1D array but with 2D mapping
-                                var index = j * w + i;
+                                var index = j * h + i;
                                 var parentVal = hDat[index];
 
-                                if (parentVal >= lowest && parentVal <= low)
-                                {
-                                    var denom = low - lowest;
-                                    if (denom < Epsilon)
-                                        parentVal = 0f;
-                                    else
-                                        parentVal = (parentVal - lowest) / denom;
-                                }
-                                else if (parentVal >= low && parentVal <= high)
-                                {
-                                    parentVal = 1f;
-                                }
-                                else if (parentVal >= high && parentVal <= highest)
-                                {
-                                    var denom = highest - high;
-                                    if (denom < Epsilon)
-                                        parentVal = 0f;
-                                    else
-                                        parentVal = 1f - (parentVal - high) / denom;
-                                }
-                                else
-                                {
-                                    parentVal = 0f;
-                                }
+                                parentVal = mapParent(parentVal);
 
                                 hDat[index] = parentVal;
 
@@ -483,34 +505,53 @@ public partial class PCGTerrain : MonoBehaviour
 
                         parentMat.put(0, 0, hDat);
 
-                    }
+#else
+                        Core.apply(mHeights, parentMat, mapParent);
+#endif
+
+                    } //if
                     break;
 
                 case PCGProcessParentType.MappingCurve:
 
                     //float[] hDat = new float[mHeights.total() * mHeights.channels()];
 
+
+                    System.Func<float, float> mapCurveParent = (float parentVal) =>
+                    {
+                        return Config.ProcessParentCurve.Evaluate(parentVal);
+                    };
+
+#if USE_OPENCV
+
                     mHeights.get(0, 0, hDat);
 
                     //var w = mHeights.width();
                     //var h = mHeights.height();
 
-                    for (int i = 0; i < w; ++i)
+                    for (int j = 0; j < h; ++j)             
                     {
-                        for (int j = 0; j < h; ++j)
+                        for (int i = 0; i < w; ++i)
                         {
                             // stay 1D array but with 2D mapping
-                            var index = j * w + i;
+                            var index = j * h + i;
 
-                            hDat[index] = Config.ProcessParentCurve.Evaluate(hDat[index]);
+                            //hDat[index] = Config.ProcessParentCurve.Evaluate(hDat[index]);
+                            hDat[index] = mapCurveParent(hDat[index]);
                         }
                     }
 
                     parentMat.put(0, 0, hDat);
 
+#else
+                    Core.apply(mHeights, parentMat, mapCurveParent);
+#endif
 
                     break;
+
                 case PCGProcessParentType.ImageProcessing:
+
+#if USE_OPENCV
                     // TODO Mats here should probably be preserved
                     Mat converted = new Mat(mHeights.rows(), mHeights.cols(), CvType.CV_8U);
                     Mat processed = converted.clone();
@@ -519,6 +560,9 @@ public partial class PCGTerrain : MonoBehaviour
                     OpenCVForUnity.ImgprocModule.Imgproc.blur(converted, processed, new Size(10.0, 10.0));
                     processed.convertTo(parentMat, cvType, 1.0 / 255.0);
                     break;
+#else
+                    throw new System.NotImplementedException("must use OpenCV for this feature");
+#endif
                 default:
                     // passthrough unmodified
                     mHeights.copyTo(parentMat);
@@ -666,13 +710,17 @@ public partial class PCGTerrain : MonoBehaviour
 
                 //float[] heights1d = new float[mat.total() * mat.channels()];
 
+#if USE_OPENCV
+
                 mat.get(0, 0, heights1d);
 
                 Debug.Assert(heights.GetLength(0) * heights.GetLength(1) == heights1d.Length, "array size mismatch");
 
                 // Unfortunately terrainData wants a 2d array, but OpenCV can only output 1D
                 System.Buffer.BlockCopy(heights1d, 0, heights, 0, heights1d.Length * sizeof(float));
-
+#else
+                mat.get(heights);
+#endif
                 terrain.terrainData.SetHeights(0, 0, heights);
             }
 
