@@ -190,6 +190,7 @@ namespace GameAIStudent
                     }
                 }
 
+                dodgeballInfo.State = PrisonDodgeballManager.DodgeballState.Team;
                 return found;
             }
 
@@ -301,9 +302,34 @@ namespace GameAIStudent
                 DeferredStateTransitionBase<MinionFSMData> ret = null;
 
                 // could pick up a ball accidentally before getting to desired ball
-                if (Minion.HasBall)
-                    return GoToThrowSpotTransition;
+                if (Minion.HasBall) {
+                    int index = -1;
 
+                    if (Mgr.FindClosestNonPrisonerOpponentIndex(
+                        Minion.transform.position, 
+                        Team, 
+                        out index
+                    )) {
+                        PrisonDodgeballManager.OpponentInfo info;
+
+                        Mgr.GetOpponentInfo(Team, index, out info);
+
+                        return ThrowMethods.PredictThrow(
+                            Minion.HeldBallPosition, 
+                            Minion.ThrowSpeed, 
+                            Physics.gravity, 
+                            info.Pos,
+                            info.Vel, 
+                            info.Forward, 
+                            MaxAllowedThrowPositionError,
+                            out var ddr, 
+                            out var ss, 
+                            out var inty, 
+                            out var alty
+                        ) ? GoToThrowSpotTransition : DefenseDemoTransition;
+                    }
+                }
+                
                 var dbInfo = TeamData.DBInfo;
 
                 if (dbInfo == null)
@@ -386,15 +412,30 @@ namespace GameAIStudent
                     return CollectBallTransition;
                 }
 
-                if (Minion.ReachedTarget())
-                {
-                    if (FindRescuableTeammate(out var m))
-                    {
-                        RescueTransition.Arg0 = m;
-                        ret = RescueTransition;
-                    }
-                    else
+                if (Minion.ReachedTarget()) {
+                    int enemyTotal = 0, friendTotal = 0;
+
+                    PrisonDodgeballManager.OpponentInfo[] enemies = new PrisonDodgeballManager.OpponentInfo[Mgr.TeamSize];
+                    Mgr.GetAllOpponentInfo(Team, ref enemies);
+
+                    foreach (var enemy in enemies)
+                        if (enemy.IsPrisoner && !enemy.IsFreedPrisoner)
+                            enemyTotal++;
+
+                    foreach (var friend in TeamData.TeamMates)
+                        if (friend.IsPrisoner && !friend.IsFreedPrisoner)
+                            friendTotal++;
+                    
+                    if (enemyTotal <= friendTotal) {
+                        if (FindRescuableTeammate(out var x)) {
+                            RescueTransition.Arg0 = x;
+
+                            if (x.Velocity.magnitude == 0f)
+                                ret = RescueTransition;
+                        }
+                    } else {
                         ret = ThrowBallTransition;
+                    }
                 }
 
                 return ret;
@@ -448,7 +489,7 @@ namespace GameAIStudent
                 if (buddy == null || !buddy.CanBeRescued)
                 {
 
-                    if (FindRescuableTeammate(out buddy))
+                    if (!FindRescuableTeammate(out buddy))
                     {
                         buddy = null;
                     }
@@ -468,13 +509,14 @@ namespace GameAIStudent
                 var intercept = Minion.HeldBallPosition + univVDir * speedScalar * interceptT;
                 Minion.FaceTowardsForThrow(intercept);
 
-                if (canThrow)
-                {
-                    var speedNorm = speedScalar / Minion.ThrowSpeed;
-
-                    if (Minion.ThrowBall(univVDir, speedNorm))
-                        ret = CollectBallTransition;
-                }
+                if (
+                    Minion.MaxAllowedOffAngleThrow >= Minion.AbsAngleWith(intercept) &&
+                    Minion.ThrowBall(
+                        univVDir, 
+                        speedScalar / Minion.ThrowSpeed
+                    )
+                )
+                    ret = CollectBallTransition;
 
                 return ret;
             }
@@ -492,6 +534,7 @@ namespace GameAIStudent
 
             DeferredStateTransition<MinionFSMData> CollectBallTransition;
             DeferredStateTransition<MinionFSMData> DefenseDemoTransition;
+            DeferredStateTransition<MinionFSMData, MinionScript> RescueTransition;
 
             public override void Init(IFiniteStateMachine<MinionFSMData> parentFSM, MinionFSMData minFSMData)
             {
@@ -500,6 +543,11 @@ namespace GameAIStudent
                 // create deferred transitions in advanced and reuse them to avoid garbage collection hit during game
                 CollectBallTransition = ParentFSM.CreateStateTransition(CollectBallStateName);
                 DefenseDemoTransition = ParentFSM.CreateStateTransition(DefensiveDemoStateName);
+                RescueTransition = ParentFSM.CreateStateTransition<MinionScript>(
+                    RescueStateName, 
+                    null, 
+                    true
+                );
             }
 
 
@@ -548,7 +596,27 @@ namespace GameAIStudent
                 if (!hasOpponent)
                     return DefenseDemoTransition;
 
+                int enemyTotal = 0, friendTotal = 0;
 
+                PrisonDodgeballManager.OpponentInfo[] enemies = new PrisonDodgeballManager.OpponentInfo[Mgr.TeamSize];
+                Mgr.GetAllOpponentInfo(Team, ref enemies);
+
+                foreach (var enemy in enemies)
+                    if (enemy.IsPrisoner && !enemy.IsFreedPrisoner)
+                        enemyTotal++;
+
+                foreach (var friend in TeamData.TeamMates)
+                    if (friend.IsPrisoner && !friend.IsFreedPrisoner)
+                        friendTotal++;
+                
+                if (enemyTotal <= friendTotal) {
+                    if (FindRescuableTeammate(out var x)) {
+                        RescueTransition.Arg0 = x;
+
+                        if (x.Velocity.magnitude == 0f)
+                            ret = RescueTransition;
+                    }
+                }
 
                 int navmask = NavMesh.AllAreas;
 
@@ -566,36 +634,33 @@ namespace GameAIStudent
                                     (1 << Mgr.WalkableNavMeshAreaIndex);
 
                 }
-
-
-
-                var selection = ShotSelection.SelectThrow(Minion, opponentInfo, navmask, MaxAllowedThrowPositionError, out var projectileDir, out var projectileSpeed, out var interceptT, out var interceptPos);
-
-                if (selection == ShotSelection.SelectThrowReturn.DoThrow)
-                {
-                    var speedFactor = Mathf.Min(1f, projectileSpeed / Minion.ThrowSpeed);
-                    var throwRes = Minion.ThrowBall(projectileDir, speedFactor);
-
-                    if (throwRes)
-                    {
-                        Minion.FaceTowardsForThrow(interceptPos);
-
-                        return CollectBallTransition;
-                    }
-                    else
-                    {
-                        //Debug.Log("COULDN'T THROW!");
+                
+                var canThrow = ThrowMethods.PredictThrow(
+                    Minion.HeldBallPosition, 
+                    Minion.ThrowSpeed, 
+                    Physics.gravity,
+                    opponentInfo.Pos, 
+                    opponentInfo.Vel, 
+                    opponentInfo.Forward,
+                    MaxAllowedThrowPositionError,
+                    out var drivy, 
+                    out var scaly, 
+                    out var inty, 
+                    out var temp
+                );
+                
+                if (NavMesh.Raycast(
+                    opponentInfo.Pos, 
+                    drivy, 
+                    out var hit, 
+                    navmask
+                )) {
+                    if (canThrow) {
+                        Minion.FaceTowardsForThrow(Minion.HeldBallPosition + drivy * scaly * inty);
+                        if (Minion.ThrowBall(drivy, scaly / Minion.ThrowSpeed))
+                            ret = CollectBallTransition;
                     }
                 }
-
-                Vector3 intercept;
-                if (selection == ShotSelection.SelectThrowReturn.NoThrowTargettingFailed)
-                    intercept = opponentInfo.Pos;
-                else
-                    intercept = interceptPos;
-
-                Minion.FaceTowardsForThrow(intercept);
-
 
                 return ret;
             }
