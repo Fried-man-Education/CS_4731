@@ -1,5 +1,4 @@
-﻿// compile_check
-// Remove the line above if you are submitting to GradeScope for a grade. But leave it if you only want to check
+﻿// Remove the line above if you are submitting to GradeScope for a grade. But leave it if you only want to check
 // that your code compiles and the autograder can access your public methods.
 
 using System.Collections;
@@ -17,7 +16,7 @@ namespace GameAIStudent
     [RequireComponent(typeof(MinionScript))]
     public class MinionStateMachine : MonoBehaviour
     {
-        public const string StudentName = "George P. Burdell 🠔 Not your name. Change it!";
+        public const string StudentName = "Andrew Friedman";
 
         public const string GlobalTransitionStateName = "GlobalTransition";
         public const string CollectBallStateName = "CollectBall";
