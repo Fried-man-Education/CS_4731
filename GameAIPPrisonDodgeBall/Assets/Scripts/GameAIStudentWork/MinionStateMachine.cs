@@ -426,7 +426,7 @@ namespace GameAIStudent
                         if (friend.IsPrisoner && !friend.IsFreedPrisoner)
                             friendTotal++;
                     
-                    if (enemyTotal <= friendTotal) {
+                    if (friendTotal > enemyTotal){
                         if (FindRescuableTeammate(out var x)) {
                             RescueTransition.Arg0 = x;
 
@@ -609,7 +609,7 @@ namespace GameAIStudent
                     if (friend.IsPrisoner && !friend.IsFreedPrisoner)
                         friendTotal++;
                 
-                if (enemyTotal <= friendTotal) {
+                if (friendTotal > enemyTotal) {
                     if (FindRescuableTeammate(out var x)) {
                         RescueTransition.Arg0 = x;
 
