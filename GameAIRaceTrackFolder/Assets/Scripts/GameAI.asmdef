@@ -1,0 +1,24 @@
+{
+    "name": "GameAI",
+    "references": [
+        "GUID:626070ea3273cb844a310aa4f53b31fa",
+        "GUID:92ee438f32d811247a22ca14bf2a3fe0",
+        "GUID:c921005fc47710447abf75f6189becab",
+        "GUID:85e0054f8e64b47309646d35f8851f81",
+        "GUID:a43a1d5430c169245a45d4810487e021",
+        "GUID:12867885b3cdaad4ea7984df1694e4c8",
+        "GUID:6055be8ebefd69e48b49212b09b47b2f",
+        "GUID:c256a49d657a72346ba3a0e75977d606",
+        "GUID:d8b63aba1907145bea998dd612889d6b",
+        "GUID:329b4ccd385744985bf3f83cfd77dfe7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
