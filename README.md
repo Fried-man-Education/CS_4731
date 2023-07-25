@@ -7,11 +7,11 @@ While Game AI often leverages concepts from classic AI research, you will see th
 ### Course Notes
 I wrote notes throughout this course! They can be found [here](https://github.com/Fried-man/CS_4731/wiki) as a GitHub wiki hosted by this repository.
 ### Assignments
-- Assignment 1 - [Grid Lattice](https://github.com/Fried-man/CS_4731/blob/main/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/GridNavigation/CreateGrid.cs)
-- Assignment 2 - [Path Network](https://github.com/Fried-man/CS_4731/blob/main/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/PathNetwork/CreatePathNetwork.cs)
-- Assignment 3 - [AStar Pathfinding](https://github.com/Fried-man/CS_4731/blob/main/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/AStar/AStarPathSearchImpl.cs)
-- Assignment 4 - [Navigation Mesh Generation](https://github.com/Fried-man/CS_4731/blob/main/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/Navmesh/CreateNavMesh.cs)
-- Assignment 5 - [Projectiles - Prison Dodgeball](https://github.com/Fried-man/CS_4731/tree/main/GameAIPPrisonDodgeBall/Assets/Scripts/GameAIStudentWork)
-- Assignment 6 - [Finite State Machines - Prison Dodgeball](https://github.com/Fried-man/CS_4731/blob/main/GameAIPPrisonDodgeBall/Assets/Scripts/GameAIStudentWork/MinionStateMachine.cs)
-- Assignment 7 - [Racetrack](https://github.com/Fried-man/CS_4731/blob/main/GameAIRaceTrackFolder/Assets/Scripts/GameAIStudentWork/FuzzyVehicle.cs)
-- Assignment 8 - [PCG](https://github.com/Fried-man/CS_4731/blob/main/GameAI_PCG/Documents/PCG_Assignment.pdf)
+- Assignment 1 - [Grid Lattice](/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/GridNavigation/CreateGrid.cs)
+- Assignment 2 - [Path Network](/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/PathNetwork/CreatePathNetwork.cs)
+- Assignment 3 - [AStar Pathfinding](/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/AStar/AStarPathSearchImpl.cs)
+- Assignment 4 - [Navigation Mesh Generation](/GameAIPathPlanning/Assets/Scripts/GameAIStudentWork/Navmesh/CreateNavMesh.cs)
+- Assignment 5 - [Projectiles - Prison Dodgeball](/GameAIPPrisonDodgeBall/Assets/Scripts/GameAIStudentWork)
+- Assignment 6 - [Finite State Machines - Prison Dodgeball](/GameAIPPrisonDodgeBall/Assets/Scripts/GameAIStudentWork/MinionStateMachine.cs)
+- Assignment 7 - [Racetrack](/GameAIRaceTrackFolder/Assets/Scripts/GameAIStudentWork/FuzzyVehicle.cs)
+- Assignment 8 - [PCG](/GameAI_PCG/Assets/Scripts/StudentWork)
