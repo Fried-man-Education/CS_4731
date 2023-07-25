@@ -32,7 +32,8 @@ MonoBehaviour:
     Complement: 0
     Mute: 0
     DoNotProcessDescendants: 0
-    PCGConfigChildren: []
+    PCGConfigChildren:
+    - m_storage: 45164f34-9566-48f0-8cff-c2e174326d43
     GenNoiseCurve:
       serializedVersion: 2
       m_Curve:
@@ -83,3 +84,357 @@ MonoBehaviour:
       m_RotationOrder: 4
     guid:
       m_storage: 002cef59-a56c-421f-bac0-3aa10876c3f0
+  - Name: Biome
+    XOffset1000: 0
+    XOffset100: 0
+    XOffset10: 0
+    XOffset1: 0
+    YOffset1000: 0
+    YOffset100: 0
+    YOffset10: 0
+    YOffset1: 0
+    ZOffset: 0
+    MaxValue: 0.3
+    PerlinScalar: 0.0013
+    GenNoiseType: 0
+    ProcessParentType: 4
+    CombineType: 0
+    ProcessParentVariables: []
+    Complement: 0
+    Mute: 0
+    DoNotProcessDescendants: 0
+    PCGConfigChildren:
+    - m_storage: f405fbf1-8377-40b3-893e-4cac01393595
+    - m_storage: ca7435a3-c9ed-4c1d-ad01-9b2439c82c6e
+    - m_storage: 934cef81-f98d-426e-b511-e1d2033cc7af
+    GenNoiseCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: -1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    ProcessParentCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: -1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    guid:
+      m_storage: 45164f34-9566-48f0-8cff-c2e174326d43
+  - Name: PCG_NODE
+    XOffset1000: 0
+    XOffset100: 0
+    XOffset10: 0
+    XOffset1: 0
+    YOffset1000: 0
+    YOffset100: 0
+    YOffset10: 0
+    YOffset1: 0
+    ZOffset: 0
+    MaxValue: 0.424
+    PerlinScalar: 7.5
+    GenNoiseType: 1
+    ProcessParentType: 0
+    CombineType: 0
+    ProcessParentVariables: []
+    Complement: 0
+    Mute: 0
+    DoNotProcessDescendants: 0
+    PCGConfigChildren: []
+    GenNoiseCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.578737
+        value: 0.41508916
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    ProcessParentCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    guid:
+      m_storage: f405fbf1-8377-40b3-893e-4cac01393595
+  - Name: PCG_NODE
+    XOffset1000: 0
+    XOffset100: 0
+    XOffset10: 0
+    XOffset1: 0
+    YOffset1000: 0
+    YOffset100: 0
+    YOffset10: 0
+    YOffset1: 0
+    ZOffset: 0
+    MaxValue: 0.081
+    PerlinScalar: 9.4
+    GenNoiseType: 1
+    ProcessParentType: 0
+    CombineType: 1
+    ProcessParentVariables: []
+    Complement: 1
+    Mute: 0
+    DoNotProcessDescendants: 0
+    PCGConfigChildren: []
+    GenNoiseCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.031230927
+        value: -0.4764099
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    ProcessParentCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: -1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    guid:
+      m_storage: ca7435a3-c9ed-4c1d-ad01-9b2439c82c6e
+  - Name: PCG_NODE
+    XOffset1000: 0
+    XOffset100: 0
+    XOffset10: 0
+    XOffset1: 0
+    YOffset1000: 0
+    YOffset100: 0
+    YOffset10: 0
+    YOffset1: 0
+    ZOffset: 0
+    MaxValue: 0.547
+    PerlinScalar: 2.1
+    GenNoiseType: 1
+    ProcessParentType: 0
+    CombineType: 0
+    ProcessParentVariables: []
+    Complement: 0
+    Mute: 0
+    DoNotProcessDescendants: 0
+    PCGConfigChildren:
+    - m_storage: be97647e-8715-447a-9355-08834c5a6f78
+    GenNoiseCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: -17.950455
+        value: 1565.6482
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 2
+        outSlope: 2
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    ProcessParentCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0.6046524
+        value: 0.5
+        inSlope: -1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    guid:
+      m_storage: 934cef81-f98d-426e-b511-e1d2033cc7af
+  - Name: PCG_NODE
+    XOffset1000: 0
+    XOffset100: 0
+    XOffset10: 0
+    XOffset1: 0
+    YOffset1000: 0
+    YOffset100: 0
+    YOffset10: 0
+    YOffset1: 0
+    ZOffset: 0
+    MaxValue: 0.007
+    PerlinScalar: 29.2
+    GenNoiseType: 0
+    ProcessParentType: 0
+    CombineType: 0
+    ProcessParentVariables: []
+    Complement: 0
+    Mute: 0
+    DoNotProcessDescendants: 0
+    PCGConfigChildren: []
+    GenNoiseCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: -1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    ProcessParentCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0
+        inSlope: -1
+        outSlope: 1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 1
+        value: 1
+        inSlope: 1
+        outSlope: -1
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    guid:
+      m_storage: be97647e-8715-447a-9355-08834c5a6f78
